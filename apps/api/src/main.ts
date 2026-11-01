@@ -6,7 +6,7 @@ try {
   const app = await createApplication(process.env.DATABASE_PATH ?? 'fleet-floor.sqlite');
   try {
     app.enableShutdownHooks(['SIGINT', 'SIGTERM']);
-    await app.listen(Number(portText), '127.0.0.1');
+    await app.listen(Number(portText), process.env.HOST ?? '127.0.0.1');
     console.log(`Listening on ${await app.getUrl()}`);
   } catch (error) { await app.close(); throw error; }
 } catch (error) {

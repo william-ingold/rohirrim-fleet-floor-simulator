@@ -6,14 +6,14 @@ import { join } from 'node:path';
 import { once } from 'node:events';
 import request from 'supertest';
 
-function launch(databasePath, port) {
+function launch(databasePath, port, host) {
   return spawn(process.execPath, ['apps/api/dist/main.js'], {
-    env: { ...process.env, DATABASE_PATH: databasePath, PORT: port }, stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, DATABASE_PATH: databasePath, PORT: port, ...(host === undefined ? {} : { HOST: host }) }, stdio: ['ignore', 'pipe', 'pipe'],
   });
 }
-test('B4 executable listens after recovery and SIGTERM closes cleanly, preserving the saved world', async () => {
+test.each([undefined, '127.0.0.2', '0.0.0.0'])('B4 executable listens with HOST=%s after recovery and SIGTERM closes cleanly, preserving the saved world', async host => {
   const directory = mkdtempSync(join(tmpdir(), 'fleet-bootstrap-'));
-  const child = launch(join(directory, 'world.sqlite'), '0');
+  const child = launch(join(directory, 'world.sqlite'), '0', host);
   const exited = once(child, 'exit');
   let output = '', errors = '';
   child.stderr.on('data', data => { errors += data; });
@@ -27,7 +27,11 @@ test('B4 executable listens after recovery and SIGTERM closes cleanly, preservin
       child.once('exit', code => reject(new Error(`Exited ${code}: ${errors}`)));
       child.once('error', reject);
     });
-    const response = await request(url).post('/api/worlds').send({ width: 1, height: 1 }).expect(201);
+    const address = new URL(url);
+    // Nest reports loopback for the wildcard bind; a second loopback address
+    // also proves that HOST is honored rather than silently using the default.
+    expect(address.hostname).toBe(host === '0.0.0.0' ? '127.0.0.1' : host ?? '127.0.0.1');
+    const response = await request(address.origin).post('/api/worlds').send({ width: 1, height: 1 }).expect(201);
     expect(response.body).toMatchObject({ revision: 1, runningTickIntervalMs: null });
     child.kill('SIGTERM');
     expect(await exited).toEqual([null, 'SIGTERM']);
