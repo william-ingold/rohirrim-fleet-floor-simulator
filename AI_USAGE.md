@@ -473,3 +473,11 @@ failed (1 failed/26 passed), then cleared the flag when a newer committed view
 reports active scheduling. The 27 frontend tests then passed. Same-revision
 responses still cannot erase the failure notification. No lifecycle/API policy
 changed; the client reconciles existing authoritative transport metadata.
+
+Phase 6 keyboard fix: a focused component regression showed that the selected
+floor-cell Enter handler bypassed the grid/workbench repeat and modifier guards.
+Four repeated/Ctrl/Alt/Meta Shift+Enter events incorrectly queued four GOTOs
+(1 failed/27 passed). Applied the same guards at that handler; all 28 frontend
+tests passed, including an ordinary Shift+Enter positive assertion. No engine,
+queue or shortcut policy changed. Strict typecheck subsequently passed with zero
+Svelte errors/warnings after correcting typing in the new browser review test.

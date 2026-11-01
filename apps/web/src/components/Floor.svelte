@@ -78,7 +78,7 @@
             style:grid-column={p.x + 1} style:grid-row={world.state.height - p.y}
             onfocus={() => cursor = p} onmouseenter={() => pointer = p} onmouseleave={() => pointer = null}
             onclick={event => { cursor = p; oncell(p, event.shiftKey); }}
-            onkeydown={event => { if (selectedId && !cursorMode && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); oncell(p, event.shiftKey); } }}>
+            onkeydown={event => { if (!event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey && selectedId && !cursorMode && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); oncell(p, event.shiftKey); } }}>
             {#if cell >= 40}<span class="cell-coordinate" aria-hidden="true">{p.x},{p.y}</span>{/if}
             {#if charger}<span class="charger-bolt" aria-hidden="true">ϟ</span>{/if}
             {#if from}<span class="came-from" aria-hidden="true">·</span>{/if}

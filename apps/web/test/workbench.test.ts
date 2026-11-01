@@ -61,6 +61,19 @@ describe('simulation workbench', () => {
   await fireEvent.click(screen.getByRole('button', { name: 'Queue GOTO' }));
   expect(act).toHaveBeenLastCalledWith({ type: 'ENQUEUE_COMMANDS', robotId: 'R1', commands: [{ type: 'GOTO', target: { x: 3, y: 4 } }] });
  });
+ it('ignores repeated or modified floor activation keys with a selected robot (U02)', async () => {
+  const act = vi.fn(async (_action: WorldAction) => true);
+  render(Workbench, { view: view(), act, createAnother: vi.fn(), retryHistory: vi.fn() });
+  const robot = screen.getByRole('gridcell', { name: /^x 1, y 0, R1/ });
+  await fireEvent.click(robot);
+  const target = screen.getByRole('gridcell', { name: /^x 2, y 1, empty/ });
+  for (const options of [{ repeat: true }, { ctrlKey: true }, { altKey: true }, { metaKey: true }]) {
+   await fireEvent.keyDown(target, { key: 'Enter', shiftKey: true, ...options });
+  }
+  expect(act).not.toHaveBeenCalled();
+  await fireEvent.keyDown(target, { key: 'Enter', shiftKey: true });
+  expect(act).toHaveBeenCalledExactlyOnceWith({ type: 'ENQUEUE_COMMANDS', robotId: 'R1', commands: [{ type: 'GOTO', target: { x: 2, y: 1 } }] });
+ });
  it('retains Playing after scheduler error, exposes Pause/End, and separates running from next interval (U04/U08)', async () => {
   const v = view({ stopped: true }); v.world = { ...world, runningTickIntervalMs: null, state: { ...world.state, lifecycle: 'PLAYING' } };
   const act = vi.fn(async () => true); render(Workbench, { view: v, act, createAnother: vi.fn(), retryHistory: vi.fn() });
