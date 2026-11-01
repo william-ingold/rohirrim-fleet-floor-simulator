@@ -84,3 +84,8 @@ export function parseHistory(value: unknown): HistoryQuery {
   }
   return result;
 }
+export function parsePresence(value: unknown): string {
+  const input = object(value); fields(input, ['subscriptionId']);
+  check(typeof input.subscriptionId === 'string' && input.subscriptionId.length > 0, 'Expected subscriptionId');
+  return input.subscriptionId;
+}

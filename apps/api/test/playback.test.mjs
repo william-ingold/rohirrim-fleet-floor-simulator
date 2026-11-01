@@ -7,21 +7,7 @@ import { WorldService } from '../dist/floors/world-service.js';
 import { CommittedActions, CommittedUpdates } from '../dist/floors/committed-actions.js';
 import { Playback } from '../dist/playback/playback.js';
 
-export class Clock {
-  time = 0; next = 0; jobs = new Map();
-  now = () => this.time;
-  setTimeout = (run, delay) => { const id = ++this.next; this.jobs.set(id, { run, at: this.time + delay }); return id; };
-  clearTimeout = id => this.jobs.delete(id);
-  advance(ms) {
-    const end = this.time + ms;
-    while (true) {
-      const job = [...this.jobs].sort((a, b) => a[1].at - b[1].at || a[0] - b[0]).find(([, j]) => j.at <= end);
-      if (!job) break;
-      this.time = job[1].at; this.jobs.delete(job[0]); job[1].run();
-    }
-    this.time = end;
-  }
-}
+import { Clock } from './helpers/clock.mjs';
 const resources = [];
 afterEach(() => { for (const f of resources.splice(0)) { f.playback.close(); f.db.close(); rmSync(f.directory, { recursive: true, force: true }); } });
 function fixture() {
@@ -98,4 +84,40 @@ test('S03: a Pause issued during post-commit tick publication prevents the next 
   f.clock.advance(5000);
   expect(f.worlds.get(f.id).state).toMatchObject({ tick: 1, lifecycle: 'PAUSED' });
   expect(f.worlds.history(f.id).entries.slice(-2).map(e => e.action.type)).toEqual(['AUTOMATIC_TICK', 'PAUSE']);
+});
+
+test('S04/S07: an already queued expiry callback cannot expire a renewed lease early', () => {
+  const f = fixture(), id = f.playback.register(f.id);
+  const stale = [...f.clock.jobs.values()][0].run;
+  play(f); f.clock.advance(5000); f.playback.renew(f.id, id);
+  stale();
+  expect(f.playback.renew(f.id, id).expiresInMs).toBe(15000);
+  expect(f.worlds.get(f.id).state.lifecycle).toBe('PLAYING');
+});
+
+test('S05: overdue scheduled tick rechecks presence before any movement even when expiry timer has not run', () => {
+  const f = fixture(); f.playback.register(f.id); play(f);
+  const tick = [...f.clock.jobs.values()].find(j => j.at === 1000).run;
+  f.clock.time = 15000; tick();
+  expect(f.worlds.get(f.id).state).toMatchObject({ tick: 0, lifecycle: 'PAUSED', robots: [{ queue: [{ type: 'MOVE' }, { type: 'LEFT' }] }] });
+});
+
+test('S05/S10: failed no-clients Pause stops scheduling, preserves Playing and surfaces an error without retry', () => {
+  const f = fixture(); f.playback.register(f.id); play(f);
+  f.db.exec("CREATE TRIGGER fail_pause BEFORE INSERT ON world_history WHEN json_extract(NEW.action_json, '$.type') = 'PAUSE' BEGIN SELECT RAISE(ABORT, 'fault'); END");
+  f.clock.advance(15000);
+  const before = f.worlds.get(f.id);
+  expect(before.state.lifecycle).toBe('PLAYING'); expect(f.playback.interval(f.id)).toBeNull();
+  expect(f.playback.error(f.id).error.code).toBe('INTERNAL_ERROR');
+  f.clock.advance(15000); expect(f.worlds.get(f.id)).toEqual(before);
+});
+
+test('S10: real writer lock surfaces PERSISTENCE_UNAVAILABLE; committed End clears stopped status', () => {
+  const f = fixture(); f.playback.register(f.id); play(f);
+  const before = f.worlds.get(f.id), competing = openDatabase(join(f.directory, 'world.sqlite'));
+  f.db.pragma('busy_timeout = 0'); competing.exec('BEGIN IMMEDIATE');
+  try { f.clock.advance(1000); } finally { competing.exec('ROLLBACK'); competing.close(); }
+  expect(f.playback.error(f.id).error.code).toBe('PERSISTENCE_UNAVAILABLE');
+  expect(f.worlds.get(f.id)).toEqual(before);
+  f.playback.act(f.id, { type: 'END' }); expect(f.playback.error(f.id)).toBeUndefined();
 });

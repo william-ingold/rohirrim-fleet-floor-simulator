@@ -272,3 +272,31 @@ no update publishes. Reentrant Pause during tick publication prevents a later
 tick. Refactor names the shared lease duration. Build uses Node 26.13.0;
 commands: API workspace build and native-ESM Jest playback.test.mjs. HTTP
 integration and bounded SSE are the next increment; no completed B5 claim yet.
+
+B5 streaming increment: four real HTTP tests first could not bind localhost in
+sandbox (EPERM). Escalated execution produced four real red failures: expected
+frames absent because routes were missing. Implemented register-before-read
+SSE with stream.ready/snapshot/revision IDs, ordered updates, presence endpoint,
+running interval envelopes, reconnect scheduler errors, draft cancellation and
+shutdown cleanup. The same four tests passed. Nest uses its raw response seam
+with Node ServerResponse framing/backpressure; no new dependencies or versions.
+
+An audit test for an already queued expiry callback ran red (1 failed/4 passed):
+the callback removed a renewed lease. Added a deadline recheck; green. This was
+an AI implementation defect caught by its own test, not a user rejection.
+Extracted the deterministic test clock and removed duplicate exception cleanup
+when green. Additional audits passed on introduction: byte/frame bounds and
+write exceptions, overdue-tick presence recheck, failed automatic Pause, real
+SQLite writer lock classification, open-stream app shutdown, real Play/restart
+recovery, and lost-delivery snapshot/history catch-up. No red claim for these.
+The bound test stalls the writer deterministically; real HTTP tests separately
+parse frames and close sockets. No real network saturation benchmark claim.
+
+Actual final checks on Node 26.13.0: npm run test:playback passed 16 tests after
+its sandbox listen failures were rerun with escalation. Final npm test rebuilt
+engine/scenario/API, passed 108 Vitest plus 68 Jest tests (176 total). npm run
+typecheck and git diff --check passed. Standalone npm run scenario --
+scenarios/goto-charger.txt built engine/CLI and printed the six expected lines.
+No clean reinstall, dependency audit, performance, power-loss, browser or UI
+validation was performed in B5. Existing Jest experimental warnings remain.
+Git metadata was sandbox read-only; focused commits required escalation.

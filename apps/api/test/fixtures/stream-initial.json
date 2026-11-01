@@ -1,0 +1,28 @@
+[
+  {
+    "event": "stream.ready",
+    "data": {
+      "worldId": "<worldId>",
+      "subscriptionId": "<subscriptionId>"
+    }
+  },
+  {
+    "event": "world.snapshot",
+    "id": "2",
+    "data": {
+      "worldId": "<worldId>",
+      "revision": 2,
+      "snapshotVersion": 1,
+      "runningTickIntervalMs": null,
+      "state": {
+        "width": 2,
+        "height": 1,
+        "tick": 0,
+        "lifecycle": "PAUSED",
+        "obstacles": [],
+        "chargers": [],
+        "robots": []
+      }
+    }
+  }
+]

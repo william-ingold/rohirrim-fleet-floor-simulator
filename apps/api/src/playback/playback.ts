@@ -38,6 +38,10 @@ export class Playback {
     this.leases.set(id, lease); this.armLease(id, lease); return id;
   }
   disconnect(id: string): void { const lease = this.leases.get(id); if (lease) lease.open = false; }
+  invalidateLease(id: string): void {
+    const lease = this.leases.get(id);
+    if (lease) { this.clock.clearTimeout(lease.timer); this.leases.delete(id); }
+  }
   invalidate(worldId: string): void {
     for (const [id, lease] of this.leases) if (lease.worldId === worldId) {
       this.clock.clearTimeout(lease.timer); this.leases.delete(id);
@@ -52,7 +56,7 @@ export class Playback {
   }
   private armLease(id: string, lease: Lease): void {
     lease.timer = this.clock.setTimeout(() => {
-      if (this.leases.get(id) !== lease) return;
+      if (this.leases.get(id) !== lease || lease.deadline > this.clock.now()) return;
       this.leases.delete(id);
       if (!this.hasPresence(lease.worldId) && this.loops.has(lease.worldId)) this.autoPause(lease.worldId);
     }, Math.max(0, lease.deadline - this.clock.now()));

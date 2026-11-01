@@ -25,7 +25,9 @@
     "pretest:http": "npm run build --workspace @rohirrim/engine && npm run build --workspace @rohirrim/api",
     "test:http": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand apps/api/test/http.test.mjs apps/api/test/bootstrap.test.mjs",
     "prestart:api": "npm run build --workspace @rohirrim/engine && npm run build --workspace @rohirrim/api",
-    "start:api": "node apps/api/dist/main.js"
+    "start:api": "node apps/api/dist/main.js",
+    "pretest:playback": "npm run build --workspace @rohirrim/engine && npm run build --workspace @rohirrim/api",
+    "test:playback": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand apps/api/test/playback.test.mjs apps/api/test/streaming.test.mjs apps/api/test/stream-writer.test.mjs"
   },
   "devDependencies": {
     "@types/better-sqlite3": "9.6.0",
