@@ -396,3 +396,27 @@ mobile captures were actually viewed. README and PHASE5_RESULTS.md document
 local setup, acceptance, actual failures/fixes, checks, limits and the phase 6
 handoff. No frozen-contract amendment or unresolved material question. Existing
 user planning/design changes remain outside these focused frontend commits.
+
+WSL and Docker setup (2026-11-01): diagnosed Windows npm/Node being selected
+inside WSL from the supplied npm log. Installed nvm v0.40.8 and official Linux
+Node 26.13.0 persistently under ~/.nvm, with the default alias and Bash startup
+initialization. nvm verified the Node archive checksum; a new interactive Bash
+resolved both node and npm under ~/.nvm and reported linux v26.13.0.
+Added a multistage Dockerfile, Compose API/web services, a named SQLite volume,
+health checks, a non-root API runtime, and an nginx static/SSE proxy. The API
+accepts HOST while retaining its default loopback bind. Added executable startup
+coverage for the default, a second loopback address, and wildcard binding.
+README documents WSL installation, Docker lifecycle, storage, and port overrides.
+
+Validation: the initial socket/process checks required sandbox escalation.
+Startup-test failures exposed a double-slash request URL and Nest reporting
+loopback for wildcard binds; corrected the test assertions. All 29 HTTP/startup
+tests then passed. Docker built both images from the lockfile and started both
+services healthy. Windows rejected published port 8080, so the verified default
+web port is 18080. A temporary end-to-end script verified HTML and JS assets,
+proxied creation/actions/presence, immediate SSE updates, and saved world state
+after force-recreating the API container; it cancelled its test world afterward.
+Verified nginx configuration and uid=1000(node) in the API container. Root
+typecheck passed with zero Svelte errors/warnings, and git diff --check passed.
+Containers remain running at localhost:18080 (web) and localhost:3000 (API).
+Existing user planning/design changes were preserved. No deployment was performed.

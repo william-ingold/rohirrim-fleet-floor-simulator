@@ -16,6 +16,70 @@ npm run typecheck
 npm run build
 ```
 
+## WSL setup
+
+Install Linux Node inside Ubuntu rather than using Windows Node from `/mnt/c`.
+Windows npm invokes CMD, which cannot use a WSL UNC working directory and can
+fall back to `C:\Windows`, causing a missing `package.json` error.
+
+Install [nvm](https://github.com/nvm-sh/nvm#installing-and-updating) once in WSL:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh -o /tmp/nvm-install.sh
+bash /tmp/nvm-install.sh
+. "$HOME/.nvm/nvm.sh"
+cd ~/rohirrim
+nvm install
+nvm use
+nvm alias default 26.13.0
+```
+
+Node lives under `~/.nvm/versions/node/`, and nvm initializes in new interactive
+Bash terminals. Only the installer download uses `/tmp`. Run `nvm use` when
+returning to this repository after working on another Node version.
+`command -v node` and `command -v npm` should both point under `~/.nvm`, and
+`node -p process.platform` should print `linux`. Then run `npm ci` and the normal
+commands above.
+
+## Run everything in Docker
+
+Start Docker Desktop with the WSL 2 engine and enable Ubuntu in **Settings →
+Resources → WSL Integration**. See [Docker's WSL setup](https://docs.docker.com/desktop/features/wsl/).
+From the repository root:
+
+```sh
+docker compose up --build -d --wait
+```
+
+Open **http://localhost:18080**. Compose builds Linux dependencies and the
+TypeScript/Svelte code inside the images; host Node and host `node_modules` are
+not needed. The web container serves the production Vite build through nginx
+and proxies `/api`, including unbuffered SSE, to the API container. The API is
+also available directly at **http://localhost:3000/api**. Published ports bind
+only to host loopback. If those ports are occupied, use:
+
+```sh
+WEB_PORT=18081 API_PORT=3001 docker compose up --build -d --wait
+```
+
+SQLite lives at `/data/fleet-floor.sqlite` in the `fleet-data` named volume.
+It survives container replacement and `docker compose down`. This is a separate
+database from any locally started API. The API runs as the unprivileged Node
+user and starts only after migrations/recovery; the web service waits for the
+API health check. Node runs directly so shutdown signals reach the application.
+
+```sh
+docker compose logs -f          # follow service output; Ctrl-C exits the log viewer
+docker compose ps              # service and health status
+docker compose down            # stop and remove containers, preserving saved worlds
+docker compose up --build -d --wait  # rebuild after source changes
+```
+
+`docker compose down --volumes` also deletes saved Docker worlds. This setup uses
+production builds; use the two-terminal workbench workflow below for Vite hot
+reload. Docker explicitly sets `HOST=0.0.0.0` so other containers can reach the
+API; local `npm run start:api` continues to bind `127.0.0.1` by default.
+
 `npm run test:engine` runs only engine tests. `npm run test:scenario` builds and
 runs CLI tests, including real child processes. `npm test` builds all four workspaces
 before running all tests: Vitest for engine/CLI and Svelte UI, Jest for
@@ -76,7 +140,7 @@ DATABASE_PATH=/tmp/fleet-floor.sqlite PORT=3000 npm run start:api
 ```
 
 The command builds engine/API, completes migrations/validation/restart recovery,
-then listens on `127.0.0.1`. Defaults are port 3000 and `fleet-floor.sqlite` in the
+then listens on `127.0.0.1` (override with `HOST` for containers). Defaults are port 3000 and `fleet-floor.sqlite` in the
 current directory. The caller supplies an existing writable parent directory.
 SIGINT/SIGTERM close the server and database. Keep `apps/api/migrations/` next to
 the built workspace as described in B3_RESULTS.md. An invalid port, migration,
