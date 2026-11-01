@@ -47,3 +47,11 @@ the frozen contract requiring explicit facing. New test failed (1 failed/41 pass
 then the aggregate guard fixed it (42 passed). Restricted CONTINUING progress to
 GOTO at the type boundary and narrowed public exports. This is an AI implementation
 mistake caught by its own review/tests, not a claimed user rejection.
+
+Final validation: cached clean reinstall with `npm ci --offline --cache
+/tmp/rohirrim-npm-cache --ignore-scripts` succeeded (39 packages, zero reported
+vulnerabilities). Then `npm test` passed 42 tests in three files, typecheck and
+build passed. An actual ESM import through the built workspace export moved R1
+east once and asserted battery 99. `git diff --check` passed. Added README and
+B1_RESULTS with exact scope, seam, validation and remaining IDs. Existing user
+documentation modifications/design artifacts remain outside these commits.
