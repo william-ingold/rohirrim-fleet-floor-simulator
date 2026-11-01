@@ -102,3 +102,35 @@ commands and remaining IDs, including S09/S10/U08 added to the planning matrix
 since B1's report. No new decisions or changes to the frozen contract. Ordinary
 online npm ci, API integration, frontend readiness, full phase-0 gate,
 performance and coverage were not claimed.
+
+## Phase 3 / B3 — 2026-11-01, durable action increment
+
+User authorized B3 persistence only and focused commits. The closing B1 mention
+was treated as prior-slice context, consistent with B2; this was stated before
+implementation. No agents delegated. Read the required prompts, B1/B2 results,
+handoff, decisions, architecture persistence/application sections, plan, resolved
+review items, frozen contract and acceptance matrix. Selected D01–D03, D04's
+persistence recovery behavior, L05's disposal and application portions of L01–L04.
+No HTTP server/controllers, UI, scheduler, SSE or presence implementation.
+
+Verified official npm metadata for better-sqlite3 13.0.3 (Node >=22), Jest 30.2.0
+(Node >=24 accepted), @types/better-sqlite3 9.6.0 and @types/jest 30.0.0. Read the
+driver's official transaction documentation: immediate transactions commit on
+return, roll back on exceptions, and cannot span async work. Installed exact
+pins with one lockfile on Node 26.13.0. Sandbox DNS blocked registry queries and
+installation; escalated commands succeeded. The native SQLite addon executed.
+Install reported 19 vulnerabilities (1 low/18 moderate); a separate actual npm
+audit reported 19 (3 low/16 moderate), all in Jest's development tree. No forced
+major downgrade/override was applied; this is an unresolved tooling limitation.
+
+Eight real temporary-file SQLite Jest tests ran red against a throwing service
+stub, then green after migrations and synchronous BEGIN IMMEDIATE service work.
+SQL triggers inject history failure, including observing the written tick before
+raising, and draft-history deletion failure. Assertions cover rollback of CREATE,
+Finish Setup/t0, MOVE consumption/battery/revision, immutable retained history,
+atomic draft disposal, close/reopen with GOTO progress, no-ops and idle ticks.
+Refactor narrowed the response helper to metadata it actually uses, eliminating
+a fabricated saved-row value. npm run test:persistence passed all 8 after refactor;
+npm run typecheck and git diff --check passed. PLAY currently rejects pending
+its B5 adapter; startup validation/recovery is the next increment. No complete
+D01–D04 claim yet. Existing user documentation/design edits remain untouched.

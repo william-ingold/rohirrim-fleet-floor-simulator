@@ -2,21 +2,32 @@
   "name": "rohirrim",
   "private": true,
   "type": "module",
-  "engines": { "node": "26.13.0" },
-  "workspaces": ["packages/*", "apps/*"],
+  "engines": {
+    "node": "26.13.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
     "pretest": "npm run build",
-    "test": "vitest run",
+    "test": "vitest run && node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "pretest:persistence": "npm run build --workspace @rohirrim/engine && npm run build --workspace @rohirrim/api",
+    "test:persistence": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
     "test:engine": "vitest run packages/engine",
     "pretest:scenario": "npm run build",
     "test:scenario": "vitest run apps/scenario",
     "typecheck": "tsc --noEmit",
-    "build": "npm run build --workspace @rohirrim/engine && npm run build --workspace @rohirrim/scenario",
-    "prescenario": "npm run build",
+    "build": "npm run build:scenario && npm run build --workspace @rohirrim/api",
+    "build:scenario": "npm run build --workspace @rohirrim/engine && npm run build --workspace @rohirrim/scenario",
+    "prescenario": "npm run build:scenario",
     "scenario": "node apps/scenario/dist/main.js"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "9.6.0",
+    "@types/jest": "30.0.0",
     "@types/node": "26.6.6",
+    "jest": "30.2.0",
     "typescript": "5.9.3",
     "vite": "8.3.5",
     "vitest": "5.0.5"
