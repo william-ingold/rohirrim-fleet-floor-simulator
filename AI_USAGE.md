@@ -336,3 +336,15 @@ restoring implementation. Implementation had been drafted before that red run
 because dependencies were not yet available; this is not strict test-first TDD.
 Workbench tests currently fail to load the not-yet-created component; no UI or
 real-backend integration completion is claimed in this commit.
+
+Phase 5 workbench increment: implemented world creation/URL restoration, approved
+palette/markers/grid, dimensions, independent feature tools, full robot queues and
+battery, scoped arrows/C cursor/explicit GOTO, lifecycle/speed/pending/error
+controls, last outcomes and independently scrolling history. Added committed-tick
+marker motion and reduced-motion support. Component tests first failed to import
+the absent Workbench, then exposed a missing matchMedia test shim and an actual
+GOTO-y accessible-label spacing defect. After fixes all nine UI/session tests
+passed. Strict Svelte checking found a `state` variable colliding with `$state`;
+renamed it, and root typecheck passed with zero Svelte errors/warnings. Root build
+passed, producing a static Vite bundle. Browser checks are the next increment;
+no screenshot, real-browser integration or accessibility completion claim yet.

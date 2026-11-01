@@ -1,6 +1,7 @@
 # Nestjs specific
 /dist
 /node_modules
+/apps/*/node_modules/
 /build
 /packages/*/dist/
 /apps/*/dist/
@@ -27,3 +28,7 @@ lerna-debug.log*
 
 # Default local API database and WAL/SHM companions
 /fleet-floor.sqlite*
+
+# Browser test output (review screenshots are retained in docs/handoff/phase5)
+/apps/web/test-results/
+/apps/web/playwright-report/
