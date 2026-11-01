@@ -221,3 +221,54 @@ guard. Final full npm test rebuilt engine/CLI/API and passed 160 tests (108 Vite
 25 persistence + 25 HTTP + 2 bootstrap Jest). Strict npm run typecheck and
 Git diff check passed. Supertest/CLI process checks required escalation.
 No clean reinstall, coverage, performance, browser or real SSE claim in B4.
+
+## UI/UX design — 2026-11-01, planning only
+
+User assigned docs/handoff/prompts/UI_UX.md with FRONTEND.md and the reviewed
+contract/lifecycle excerpts as constraints, and required design artifacts rather
+than app code, with colors and timings marked as proposals. This work was done
+with Claude Code, separately from the Codex implementation sessions above. No
+agents delegated. Codex's engine work was not reviewed here.
+
+Produced docs/handoff/design/UI_UX_SPEC.md and workbench-design.html, generated
+by Python scripts kept in session scratch space, not the repository. The page was
+also published as a private artifact for review. No application code or tests
+were written, and robot, queue, playback and persistence behavior was not changed.
+
+The design review found two gaps in the frozen boundary: no recovery step after
+scheduler.error and no field exposing the running interval. Claude recommended
+keeping the running interval hidden; the user rejected that and asked to show it.
+Claude then proposed the field and Pause recovery, which the user approved (D061,
+D062). The user also allowed either mouse drag or arrow keys for queueing; Claude
+chose arrow keys plus a floor cursor, and the user accepted (D063). The user asked
+for ample or scrollable history space, recorded as a scrolling panel of at least
+320px. The user selected Bright Daylight and approved the remaining proposals.
+
+Claude's own mistakes, found while checking rendered output: two CSS class-name
+collisions broke layout, gallery cells stretched, and nested bold text rendered as
+blocks; all were fixed. Hash-anchored headless screenshots came out blank, so
+review hid other sections with CSS instead. A first documentation patch script
+failed its own assertion and was narrowed. Page behavior below about 500px could
+not be checked because of the headless browser's minimum window width. Contrast,
+accessibility and performance are not verified in an implemented UI.
+
+The user then asked when and where the design materials are used; the answer is
+recorded in D064. Planning and design edits were left uncommitted at this point.
+
+## Phase 4 / B5 — 2026-11-01, scheduler/presence increment
+
+User authorized only B5 and focused commits. No agents delegated. Read the
+master/backend prompts, B4/B3/B1/B2 reports, required handoff/specifications,
+frozen contract and resolved R1–R5. Preserved existing planning/design edits.
+Selected E01–E08, P01–P06, B01–B05 and engine L01–L04 regressions: all 42 passed.
+Selected B5 S01–S10, with real SQLite, deterministic application clock, and
+planned real HTTP SSE evidence. No engine, schema, dependency or contract changes.
+
+Four scheduler/presence tests actually failed against an explicit constructor
+stub, then all four passed after generation-safe one-shot scheduling, transient
+15s leases, closed-stream grace, renewal, no-clients Pause, and stopped-error
+recovery. Real SQL history trigger proves tick rollback retains commands and
+no update publishes. Reentrant Pause during tick publication prevents a later
+tick. Refactor names the shared lease duration. Build uses Node 26.13.0;
+commands: API workspace build and native-ESM Jest playback.test.mjs. HTTP
+integration and bounded SSE are the next increment; no completed B5 claim yet.

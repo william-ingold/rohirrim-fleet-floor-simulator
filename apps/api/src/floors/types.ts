@@ -8,8 +8,9 @@ export type WorldAction =
   | { readonly type: 'ENQUEUE_COMMANDS'; readonly robotId: string; readonly commands: readonly CommandInput[] }
   | { readonly type: 'CLEAR_QUEUE'; readonly robotId: string }
   | { readonly type: 'PLAY'; readonly tickIntervalMs: number };
+export type PlaybackAction = { readonly type: 'AUTOMATIC_TICK' } | { readonly type: 'PAUSE'; readonly reason: 'NO_CLIENTS' };
 export type AuditAction = WorldAction | { readonly type: 'CREATE'; readonly width: number; readonly height: number }
-  | { readonly type: 'AUTOMATIC_TICK' } | { readonly type: 'PAUSE'; readonly reason: 'SERVER_RESTART' };
+  | PlaybackAction | { readonly type: 'PAUSE'; readonly reason: 'SERVER_RESTART' };
 export type Effects = { readonly outcomes?: readonly RobotTickOutcome[]; readonly robotId?: string };
 export type HistoryEntry = {
   readonly worldId: string; readonly revision: number; readonly tick: number; readonly timestamp: string;

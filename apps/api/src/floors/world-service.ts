@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { DomainError, World } from '@rohirrim/engine';
 import type Database from 'better-sqlite3';
 import { migrate } from '../persistence/database.js';
-import type { AuditAction, CancelReceipt, CommittedWorld, Effects, HistoryEntry, HistoryPage, HistoryQuery, WorldAction } from './types.js';
+import type { AuditAction, CancelReceipt, CommittedWorld, Effects, HistoryEntry, HistoryPage, HistoryQuery, PlaybackAction, WorldAction } from './types.js';
 
 export class StorageError extends Error {
   constructor(message: string, readonly code: 'WORLD_NOT_FOUND' | 'UNSUPPORTED_SNAPSHOT_VERSION' | 'INTERNAL_ERROR', options?: ErrorOptions) {
@@ -70,6 +70,13 @@ export class WorldService {
     return this.response({ ...row, revision }, world, [entry]);
   }
   act(id: string, action: WorldAction): CommittedWorld | CancelReceipt {
+    return this.apply(id, action, false);
+  }
+  /** Internal scheduler seam; the playback adapter owns presence/generation guards. */
+  playback(id: string, action: PlaybackAction | Extract<WorldAction, { type: 'PLAY' }>): CommittedWorld {
+    return this.apply(id, action, true) as CommittedWorld;
+  }
+  private apply(id: string, action: WorldAction | PlaybackAction, allowPlay: boolean): CommittedWorld | CancelReceipt {
     return this.db.transaction(() => {
       const { row, world } = this.load(id);
       let next = world;
@@ -96,7 +103,11 @@ export class WorldService {
         }
         case 'PLAY':
           if (world.snapshot.lifecycle === 'PLAYING') break;
+          if (allowPlay) { next = world.play(); break; }
           throw new DomainError('Play requires the presence/scheduler adapter', 'INVALID_LIFECYCLE');
+        case 'AUTOMATIC_TICK': {
+          const result = world.automaticTick(); next = result.world; effects = { outcomes: result.outcomes }; break;
+        }
         default: throw new DomainError('Unknown world action');
       }
       return next === world ? this.response(row, world) : this.save(row, next, action, effects);

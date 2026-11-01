@@ -1,5 +1,5 @@
 import type { WorldService } from './world-service.js';
-import type { CancelReceipt, CommittedWorld, WorldAction } from './types.js';
+import type { CancelReceipt, CommittedWorld, PlaybackAction, WorldAction } from './types.js';
 
 export type CommittedEvent = { readonly type: 'WORLD_COMMITTED'; readonly world: CommittedWorld }
   | { readonly type: 'DRAFT_CANCELLED'; readonly worldId: string };
@@ -40,8 +40,19 @@ export class CommittedActions {
     this.updates.publish({ type: 'WORLD_COMMITTED', world: result });
     return result;
   }
-  act(id: string, action: WorldAction): CommittedWorld | CancelReceipt {
+  act(id: string, action: WorldAction, beforePublish?: (result: CommittedWorld | CancelReceipt) => void): CommittedWorld | CancelReceipt {
     const result = this.worlds.act(id, action);
+    beforePublish?.(result);
+    return this.publish(result);
+  }
+  playback(id: string, action: PlaybackAction | Extract<WorldAction, { type: 'PLAY' }>, beforePublish?: (result: CommittedWorld) => void): CommittedWorld {
+    const result = this.worlds.playback(id, action);
+    beforePublish?.(result);
+    this.publish(result);
+    return result;
+  }
+  private publish(result: CommittedWorld | CancelReceipt): CommittedWorld | CancelReceipt {
+    const id = result.worldId;
     if ('cancelled' in result) this.updates.publish({ type: 'DRAFT_CANCELLED', worldId: id });
     else if (result.historyEntries.length > 0) this.updates.publish({ type: 'WORLD_COMMITTED', world: result });
     return result;
