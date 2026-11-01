@@ -100,6 +100,20 @@ describe('session recovery boundaries', () => {
     expect(h.transport.history).toHaveBeenNthCalledWith(2, 'w', 2, 5);
     expect(get(h.session).historyCursor).toBe(8); h.session.dispose();
   });
+  it('clears a stale scheduler error when reconnect observes another tab resuming (S08/S10)', async () => {
+    vi.useFakeTimers(); const h = harness();
+    const playing = (revision: number): WorldResponse => ({ ...snapshot(revision), runningTickIntervalMs: 500, state: { ...snapshot(revision).state, lifecycle: 'PLAYING' } });
+    h.session.open('w'); h.event({ type: 'world.snapshot', data: playing(5) });
+    h.event({ type: 'scheduler.error', data: { worldId: 'w', error: { code: 'INTERNAL_ERROR', message: 'Playback stopped due to an error' } } });
+    // The failed tab misses the committed Pause and Play, then reads their newer state.
+    vi.mocked(h.transport.get).mockResolvedValue(playing(7));
+    h.lost(); await flush(); await vi.advanceTimersByTimeAsync(1000);
+    h.event({ type: 'world.snapshot', data: playing(7) });
+    expect(get(h.session).world?.revision).toBe(7);
+    expect(get(h.session).world?.runningTickIntervalMs).toBe(500);
+    expect(get(h.session).stopped).toBe(false);
+    h.session.dispose();
+  });
 });
 
 it('keeps last tick context through Pause but drops it on skipped revisions or resync', async () => {

@@ -454,3 +454,22 @@ Socket tests required sandbox escalation. Existing local services occupied port
 3000, so the browser check used temporary configuration, database, and ports
 3101/5273 plus Chromium from /tmp/rohirrim-playwright. No running application
 was redeployed. Changes are grouped into engine/API and UI commits.
+
+## Phase 6 — 2026-11-01, review and scheduler recovery fix
+
+User authorized the review/testing phase and focused commits, then explicitly
+requested executing every original test-scenarios file. Read Phase 5 results,
+review prompt, README/run guide, decisions, architecture, frozen contract,
+acceptance/implementation plan, B3/B4/B5 results, approved design and source/tests.
+Preserved the existing user planning/design changes. No skills, sub-agents,
+external messages, dependency upgrades or deployment were used.
+
+Baseline npm test rebuilt all four workspaces and passed 110 engine/CLI + 72 API
++ 26 frontend tests (208). Root typecheck and diff check passed. Socket/process
+checks used escalation. Review found a stale scheduler warning: after a tab sees
+scheduler.error and misses another tab's Pause/Play, a newer Playing snapshot
+with a running interval retained stopped=true. Added a regression that actually
+failed (1 failed/26 passed), then cleared the flag when a newer committed view
+reports active scheduling. The 27 frontend tests then passed. Same-revision
+responses still cannot erase the failure notification. No lifecycle/API policy
+changed; the client reconciles existing authoritative transport metadata.

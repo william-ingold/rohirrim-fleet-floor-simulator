@@ -82,7 +82,7 @@ export class Session {
     this.addHistory(entries);
     if (!before || incoming.revision > before.revision) {
       const adjacent = !!before && liveUpdate && this.view.connection === 'live' && incoming.revision === before.revision + 1 && incoming.state.tick === before.state.tick + 1;
-      this.update({ world: { ...incoming, historyEntries: entries }, previous: adjacent ? before : liveUpdate && before?.state.tick === incoming.state.tick ? this.view.previous : null, adjacent, stopped: incoming.state.lifecycle === 'PLAYING' && this.view.stopped });
+      this.update({ world: { ...incoming, historyEntries: entries }, previous: adjacent ? before : liveUpdate && before?.state.tick === incoming.state.tick ? this.view.previous : null, adjacent, stopped: incoming.state.lifecycle === 'PLAYING' && incoming.runningTickIntervalMs === null && this.view.stopped });
     } else if (incoming.revision === before.revision && !this.view.stopped) {
       this.update({ world: { ...before, runningTickIntervalMs: incoming.runningTickIntervalMs } });
     }
