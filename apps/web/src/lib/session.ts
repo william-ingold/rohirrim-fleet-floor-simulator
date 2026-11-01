@@ -82,7 +82,7 @@ export class Session {
     this.addHistory(entries);
     if (!before || incoming.revision > before.revision) {
       const adjacent = !!before && liveUpdate && this.view.connection === 'live' && incoming.revision === before.revision + 1 && incoming.state.tick === before.state.tick + 1;
-      this.update({ world: { ...incoming, historyEntries: entries }, previous: before, adjacent, stopped: incoming.state.lifecycle === 'PLAYING' && this.view.stopped });
+      this.update({ world: { ...incoming, historyEntries: entries }, previous: adjacent ? before : liveUpdate && before?.state.tick === incoming.state.tick ? this.view.previous : null, adjacent, stopped: incoming.state.lifecycle === 'PLAYING' && this.view.stopped });
     } else if (incoming.revision === before.revision && !this.view.stopped) {
       this.update({ world: { ...before, runningTickIntervalMs: incoming.runningTickIntervalMs } });
     }
@@ -127,7 +127,7 @@ export class Session {
     } catch (error) {
       if (generation !== this.generation) return false;
       await this.refresh();
-      if (generation === this.generation) this.update({ error: error instanceof ApiError ? message(error) : "We couldn't confirm that change. Check the latest saved state before trying again.", adjacent: false });
+      if (generation === this.generation) this.update({ error: error instanceof ApiError ? actionMessage(error, action, this.view.world) : "We couldn't confirm that change. Check the latest saved state before trying again.", adjacent: false });
       return false;
     } finally { if (generation === this.generation) this.update({ pending: '' }); }
   }
@@ -145,4 +145,29 @@ export function message(error: unknown): string {
     case 'INVALID_LIFECYCLE': return "The world has changed, so the action wasn't applied. Check its current state before trying again.";
     default: return error.message;
   }
+}
+
+function actionMessage(error: ApiError, action: WorldAction, world: WorldResponse | null): string {
+  if (error.code === 'PERSISTENCE_UNAVAILABLE' && action.type === 'PAUSE') return "Couldn't pause yet because the database is unavailable. Nothing changed. Try Pause again in a moment.";
+  if (error.code === 'INVALID_LIFECYCLE' && world) return `This world is now ${world.state.lifecycle === 'PLAYING' ? 'Playing' : world.state.lifecycle === 'ENDED' ? 'Ended' : 'in a different state'}, so the change wasn't applied.${world.state.lifecycle === 'PLAYING' ? ' Pause to edit.' : ''}`;
+  if (error.code === 'INVALID_PLACEMENT' && world) {
+    if (action.type === 'PLACE_ROBOT') {
+      const p = action.position, robot = world.state.robots.find(r => r.position.x === p.x && r.position.y === p.y);
+      const obstacle = world.state.obstacles.some(o => o.x === p.x && o.y === p.y);
+      if (robot || obstacle) return `Can't place a robot at (${p.x},${p.y}): ${obstacle ? 'that cell has an obstacle' : `${robot!.id} is standing there`}. Choose another cell.`;
+    }
+    if (action.type === 'SET_OBSTACLE') {
+      const p = action.position, robot = world.state.robots.find(r => r.position.x === p.x && r.position.y === p.y);
+      if (robot) return `Can't add an obstacle at (${p.x},${p.y}): ${robot.id} is standing there.`;
+    }
+    if (action.type === 'RESIZE') {
+      const outside = (p: { x: number; y: number }) => p.x >= action.width || p.y >= action.height;
+      const robot = world.state.robots.find(r => outside(r.position));
+      const target = world.state.robots.flatMap(r => r.queue.flatMap(c => c.type === 'GOTO' ? [c.target] : [])).find(outside);
+      const feature = world.state.obstacles.concat(world.state.chargers).find(outside);
+      const cause = robot ? `${robot.id} at (${robot.position.x},${robot.position.y})` : target ? `a GOTO target at (${target.x},${target.y})` : feature ? `a feature at (${feature.x},${feature.y})` : 'existing content';
+      return `Can't resize to ${action.width} × ${action.height}: ${cause} would be off the floor. The size stays ${world.state.width} × ${world.state.height}.`;
+    }
+  }
+  return message(error);
 }

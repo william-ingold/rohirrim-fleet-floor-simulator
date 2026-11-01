@@ -181,3 +181,19 @@ button,.panel,input { overflow-wrap:anywhere; }
   .creation,.loading { margin:20px 12px; padding:20px; }.dimensions input { width:64px; }
 }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; animation:none !important; transition:none !important; } }
+.robot-row.selected { color:var(--text); }
+.history-panel.collapsed { height:auto; min-height:0; }
+.new-entry { animation:history-arrival 400ms ease-out; }
+@keyframes history-arrival { from { background:var(--success-tint); } to { background:var(--surface); } }
+@media (max-width:759px) {
+  .workbench:has(.command-tray) { padding-bottom:95px; }
+  .command-tray .command-buttons { grid-template-columns:repeat(4,1fr); }
+  .tray-label { margin-bottom:4px; }
+  .world-header .lifecycle-track li { font-size:11px; }
+}
+@keyframes edge-in { from { opacity:0; } to { opacity:1; } }
+.arrival-ring { position:absolute; inset:8%; border:2px solid var(--success); border-radius:50%; z-index:4; pointer-events:none; animation:arrival 240ms ease-out forwards; }
+@keyframes arrival { from { transform:scale(.65); opacity:1; } to { transform:scale(1.25); opacity:0; } }
+.cell:hover { outline:2px solid var(--primary); outline-offset:-2px; z-index:1; }
+.pending-cell::after { content:''; position:absolute; inset:0; background:repeating-linear-gradient(135deg,transparent 0 5px,rgb(20 33 61 / 8%) 5px 10px); pointer-events:none; }
+.cell.rejected-cell { outline:2px solid var(--danger); outline-offset:-2px; }

@@ -1,5 +1,6 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 import { describe, it, expect, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import Workbench from '../src/components/Workbench.svelte';
 import type { SessionView } from '../src/lib/session.js';
 import type { WorldAction, WorldResponse } from '../src/lib/types.js';
@@ -10,7 +11,7 @@ describe('simulation workbench', () => {
   const act = vi.fn(async (_action: WorldAction) => true); render(Workbench, { view: view(), act, createAnother: vi.fn(), retryHistory: vi.fn() });
   const cell = screen.getByRole('gridcell', { name: /^x 2, y 1, empty/ });
   expect(cell.style.gridRow).toBe('7'); expect(cell.style.gridColumn).toBe('3');
-  await fireEvent.click(cell); expect(act).toHaveBeenCalledWith({ type: 'PLACE_ROBOT', position: { x: 2, y: 1 } });
+  await userEvent.setup().click(cell); expect(act).toHaveBeenCalledWith({ type: 'PLACE_ROBOT', position: { x: 2, y: 1 } });
   expect(screen.getByRole('gridcell', { name: /^x 2, y 1, empty/ })).toBeTruthy();
  });
  it('selects, queues relative Forward by button and scoped arrows, ignores inputs and repeats, and clears active GOTO (U02/U03)', async () => {
@@ -44,5 +45,37 @@ describe('simulation workbench', () => {
   await fireEvent.click(screen.getByRole('gridcell', { name: /^x 1, y 0, R1/ })); await fireEvent.click(screen.getByRole('button', { name: /Forward/ }));
   expect(act).not.toHaveBeenCalled(); expect(screen.getByRole('button', { name: 'Create another world' })).toBeTruthy();
   expect(screen.getAllByText(/GOTO 8,6/).length).toBeGreaterThan(0);
+ });
+});
+
+describe('workbench interaction boundaries', () => {
+ it('validates the next interval and only sends legal whole milliseconds (U08)', async () => {
+  const v = view(); v.world = { ...world, state: { ...world.state, lifecycle: 'PAUSED' } }; const act = vi.fn(async () => true);
+  render(Workbench, { view: v, act, createAnother: vi.fn(), retryHistory: vi.fn() });
+  for (const value of ['99', '5001', '250.5']) {
+   await fireEvent.input(screen.getByLabelText('Next Play interval'), { target: { value } }); await fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+   expect(act).not.toHaveBeenCalled();
+  }
+  for (const value of ['100', '5000']) {
+   await fireEvent.input(screen.getByLabelText('Next Play interval'), { target: { value } }); await fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+   expect(act).toHaveBeenLastCalledWith({ type: 'PLAY', tickIntervalMs: Number(value) });
+  }
+ });
+ it('shows server running interval independently from local default (U08)', () => {
+  const v = view(); v.world = { ...world, runningTickIntervalMs: 250, state: { ...world.state, lifecycle: 'PLAYING' } };
+  render(Workbench, { view: v, act: vi.fn(async () => true), createAnother: vi.fn(), retryHistory: vi.fn() });
+  expect(screen.getByText('Running at 250 ms')).toBeTruthy(); expect(screen.getByLabelText('Next Play interval')).toHaveProperty('value', '1000');
+ });
+ it('keeps placement/features immutable on pending and disconnected views (U04)', async () => {
+  const act = vi.fn(async () => true); render(Workbench, { view: view({ connection: 'reconnecting' }), act, createAnother: vi.fn(), retryHistory: vi.fn() });
+  await fireEvent.click(screen.getByRole('gridcell', { name: /^x 2, y 1, empty/ })); await fireEvent.click(screen.getByRole('button', { name: /Obstacle/ }));
+  expect(act).not.toHaveBeenCalled(); expect(screen.getByText(/Reconnecting. Showing/)).toBeTruthy();
+ });
+ it('switches feature tools exclusively and sends desired state (U02)', async () => {
+  const act = vi.fn(async () => true); render(Workbench, { view: view(), act, createAnother: vi.fn(), retryHistory: vi.fn() });
+  await fireEvent.click(screen.getByRole('button', { name: /Obstacle/ })); await fireEvent.click(screen.getByRole('gridcell', { name: /^x 2, y 1, empty/ }));
+  expect(act).toHaveBeenLastCalledWith({ type: 'SET_OBSTACLE', position: { x: 2, y: 1 }, enabled: true });
+  await fireEvent.click(screen.getByRole('button', { name: /Charger/ })); await fireEvent.click(screen.getByRole('gridcell', { name: /^x 2, y 1, empty/ }));
+  expect(act).toHaveBeenLastCalledWith({ type: 'SET_CHARGER', position: { x: 2, y: 1 }, enabled: true });
  });
 });

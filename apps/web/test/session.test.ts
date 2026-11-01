@@ -64,3 +64,49 @@ describe('committed browser session', () => {
     expect(get(h.session).world?.revision).toBe(5); h.session.dispose();
   });
 });
+
+describe('session recovery boundaries', () => {
+  it('finds a lost final update from heartbeat revision and fetches history (S08)', async () => {
+    vi.useFakeTimers(); const h = harness(); h.session.open('w'); h.event({ type: 'world.snapshot', data: snapshot(5) }); await flush();
+    h.event({ type: 'stream.ready', data: { worldId: 'w', subscriptionId: 'current' } });
+    vi.mocked(h.transport.presence).mockResolvedValue({ worldId: 'w', revision: 7, expiresInMs: 15000 });
+    vi.mocked(h.transport.get).mockResolvedValue(snapshot(7));
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(get(h.session).world?.revision).toBe(7); expect(get(h.session).historyCursor).toBe(7); h.session.dispose();
+  });
+  it('allows one mutation at a time and never updates state before commitment (U04)', async () => {
+    const h = harness(); h.session.open('w'); h.event({ type: 'world.snapshot', data: snapshot(5) }); await flush();
+    let finish!: (world: WorldResponse) => void;
+    vi.mocked(h.transport.act).mockImplementationOnce(() => new Promise(resolve => finish = resolve));
+    const pending = h.session.act({ type: 'STEP' });
+    expect(get(h.session).pending).toBe('STEP'); expect(get(h.session).world?.revision).toBe(5);
+    expect(await h.session.act({ type: 'STEP' })).toBe(false); expect(h.transport.act).toHaveBeenCalledTimes(1);
+    finish(snapshot(6, [entry(6)])); await pending; expect(get(h.session).pending).toBe(''); expect(get(h.session).world?.revision).toBe(6); h.session.dispose();
+  });
+  it('keeps scheduler error separate from saved Playing until Pause commits (S10/U08)', async () => {
+    const h = harness(); const playing = { ...snapshot(5), runningTickIntervalMs: 500, state: { ...snapshot(5).state, lifecycle: 'PLAYING' as const } };
+    h.session.open('w'); h.event({ type: 'world.snapshot', data: playing });
+    h.event({ type: 'scheduler.error', data: { worldId: 'w', error: { code: 'INTERNAL_ERROR', message: 'Playback stopped due to an error' } } });
+    h.event({ type: 'world.updated', data: playing });
+    expect(get(h.session).world?.state.lifecycle).toBe('PLAYING'); expect(get(h.session).world?.runningTickIntervalMs).toBeNull(); expect(get(h.session).stopped).toBe(true);
+    h.event({ type: 'world.updated', data: snapshot(6) }); expect(get(h.session).stopped).toBe(false); h.session.dispose();
+  });
+  it('retains a fixed history boundary across pages while newer state arrives (U05)', async () => {
+    const h = harness(); let page!: (result: { entries: HistoryEntry[]; nextAfterRevision: number; hasMore: boolean }) => void;
+    vi.mocked(h.transport.history).mockImplementationOnce(() => new Promise(resolve => page = resolve));
+    h.session.open('w'); h.event({ type: 'world.snapshot', data: snapshot(5) });
+    h.event({ type: 'world.updated', data: snapshot(8, [entry(8)]) });
+    page({ entries: [entry(1), entry(2)], nextAfterRevision: 2, hasMore: true }); await flush();
+    expect(h.transport.history).toHaveBeenNthCalledWith(2, 'w', 2, 5);
+    expect(get(h.session).historyCursor).toBe(8); h.session.dispose();
+  });
+});
+
+it('keeps last tick context through Pause but drops it on skipped revisions or resync', async () => {
+  const h = harness(); const at = (revision: number, tick: number) => ({ ...snapshot(revision), state: { ...snapshot(revision).state, tick } });
+  h.session.open('w'); h.event({ type: 'world.snapshot', data: at(5, 0) }); await flush();
+  h.event({ type: 'world.updated', data: at(6, 1) }); expect(get(h.session).adjacent).toBe(true);
+  h.event({ type: 'world.updated', data: at(7, 1) }); expect(get(h.session).previous?.state.tick).toBe(0);
+  h.event({ type: 'world.updated', data: at(10, 2) }); expect(get(h.session).adjacent).toBe(false); expect(get(h.session).previous).toBeNull();
+  h.session.dispose();
+});

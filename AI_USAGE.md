@@ -348,3 +348,30 @@ passed. Strict Svelte checking found a `state` variable colliding with `$state`;
 renamed it, and root typecheck passed with zero Svelte errors/warnings. Root build
 passed, producing a static Vite bundle. Browser checks are the next increment;
 no screenshot, real-browser integration or accessibility completion claim yet.
+
+Phase 5 validation/polish increment: real Chromium checks against a production
+Vite build and temporary real Nest/SQLite API initially passed dense rendering
+and actual lease expiry, but failed an exact queue text locator (hidden ordinal)
+and the second-tab cancellation assertion at the five-second heartbeat boundary.
+Wrapped command names and allowed 10s for cancellation; all four checks passed.
+Screenshot review caught selected-row white text on a pale fill; corrected it.
+Added narrow-screen collapsed inspector/list/history, persistent command tray,
+selection scrolling limited to the floor, committed queue fades, bounded outcome
+motion, and preservation of prior tick context through non-tick actions. Added
+contextual rejected-action copy and tests for separate running/next interval,
+whole-ms validation, immutable pending/disconnected views, exclusive tools,
+heartbeat recovery, single mutation, stopped scheduler metadata, fixed history
+pagination boundaries, and mixed turn/block/charge/arrival effects. Some audits
+passed on introduction; no red claims for those. Expanded five-browser suite
+passed with 60 real robots, 390px layout, history scroll preservation, and real
+heartbeat requests. Latest full root npm test passed 108 engine/CLI + 69 API +
+19 frontend tests (196), followed by root strict typecheck with zero Svelte
+errors/warnings and git diff --check. Existing Jest experimental warnings remain.
+A sixth real SQLite-triggered scheduler-error browser case is being verified;
+its results will be recorded in the final report. No deployment or delegated work.
+
+The sixth browser case passed against a real history-insert SQL failure trigger:
+scheduler.error retained Playing, removed Play, and Pause then Play recovered.
+A final audit tightened movement marks so non-tick updates retain the prior tick
+context but skipped revisions/reconnects discard it; added a regression test.
+Added pending/rejected cell affordances without optimistic world changes.

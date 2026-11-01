@@ -46,8 +46,7 @@ export function outcomeText(outcome: RobotTickOutcome, before?: RobotSnapshot, a
   if (command.status === 'ABANDONED') messages.push(`${id} gave up on GOTO${target}: no path for 3 ticks in a row. Marked UNREACHABLE.`);
   if (command.status === 'COMPLETED' && command.type === 'GOTO') messages.push(`${id} arrived at${target || ` ${coordinate(position)}`}. GOTO complete.`);
   if (command.status === 'CONTINUING' && move.status === 'NOT_ATTEMPTED') messages.push(`${id} found no path to${target || ' the target'}${current?.type === 'GOTO' ? `, try ${current.consecutiveNoPathTicks} of 3` : ''}. Facing unchanged.`);
-  const onCharger = world?.state.chargers.some(p => same(p, position));
-  if (before && onCharger && outcome.battery > before.battery - (move.status === 'SUCCEEDED' ? 1 : 0)) {
+  if (before && outcome.battery > before.battery - (move.status === 'SUCCEEDED' ? 1 : 0)) {
     messages.push(`${id} ended the tick on a charger: battery ${before.battery} to ${outcome.battery}${outcome.battery === 100 ? ', capped' : ''}.`);
   }
   return messages.join(' ') || `${id} stayed at ${coordinate(position)}, facing ${facingName(facing)}, battery ${outcome.battery}.`;
