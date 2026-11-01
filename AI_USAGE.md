@@ -434,3 +434,23 @@ and both services became healthy. Existing Docker Desktop plugin/kernel warnings
 did not prevent startup. Committed only the API binding, container setup, and
 startup/documentation changes in focused groups; existing user planning/design
 edits remain uncommitted. No push or deployment.
+
+Setup robot editing (2026-11-01): implemented robot deletion and immediate
+North/East/South/West facing controls across the immutable engine, Nest action
+validation/service, and Svelte inspector. The user clarified that immediate
+facing changes, like deletion, are Setup-only. Recorded D065 and the two action
+payloads in CONTRACT. Facing preserves battery, queue, and GOTO progress;
+deletion preserves features/history and uses existing ID allocation afterward.
+Committed only this task's additions to the already-modified decision/contract
+files; prior planning/design edits remain untouched and uncommitted.
+
+Validation: observed failing engine and UI behavior tests before implementation.
+Full npm test passed (110 engine/CLI, 72 API/persistence/playback/stream, 26 UI
+tests); build passed; typecheck reported zero Svelte errors/warnings. Fixed an
+incorrect Testing Library option caught by typecheck. Verified real Chromium
+two-tab updates, refresh persistence, mobile controls, selection cleanup, ID
+reuse, and post-setup control removal in a focused Playwright test (1 passed).
+Socket tests required sandbox escalation. Existing local services occupied port
+3000, so the browser check used temporary configuration, database, and ports
+3101/5273 plus Chromium from /tmp/rohirrim-playwright. No running application
+was redeployed. Changes are grouped into engine/API and UI commits.

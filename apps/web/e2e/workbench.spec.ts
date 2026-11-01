@@ -8,6 +8,33 @@ async function create(page: Page, width = 10, height = 8) {
   await expect(page.getByText('✓ Live', { exact: true })).toBeVisible();
 }
 async function image(page: Page, name: string) { await mkdir(screenshots, { recursive: true }); await page.screenshot({ path: `${screenshots}/${name}.png`, fullPage: !name.includes('mobile') }); }
+test('setup facing and deletion sync across tabs, survive refresh, and work on mobile', async ({ page, context }) => {
+  await create(page, 3, 3);
+  await cell(page, 1, 1).click(); await expect(cell(page, 1, 1)).toHaveAccessibleName(/R1/);
+  await cell(page, 1, 1).click();
+  await page.getByRole('button', { name: '↑ Forward', exact: true }).click();
+  const second = await context.newPage(); await second.goto(page.url());
+  await expect(second.getByText('✓ Live', { exact: true })).toBeVisible();
+  await cell(second, 1, 1).click();
+  await page.getByRole('button', { name: 'Face West', exact: true }).click();
+  await expect(cell(second, 1, 1)).toHaveAccessibleName(/R1 facing West/);
+  await page.reload(); await expect(cell(page, 1, 1)).toHaveAccessibleName(/R1 facing West/);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await cell(page, 1, 1).click(); await page.getByRole('button', { name: 'Inspect robot', exact: true }).click();
+  await expect(page.getByLabel('Selected robot').getByText('MOVE', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Delete robot', exact: true }).click();
+  await expect(cell(page, 1, 1)).toHaveAccessibleName(/empty/);
+  await expect(cell(second, 1, 1)).toHaveAccessibleName(/empty/);
+  await expect(second.getByRole('button', { name: 'Delete robot', exact: true })).toHaveCount(0);
+  await page.reload(); await expect(cell(page, 1, 1)).toHaveAccessibleName(/empty/);
+  await cell(second, 1, 1).click(); await expect(cell(second, 1, 1)).toHaveAccessibleName(/R1 facing North, battery 100/);
+  await expect(second.getByRole('heading', { name: 'R1', exact: true })).toHaveCount(0);
+  await cell(second, 1, 1).click();
+  await second.getByRole('button', { name: 'Finish Setup', exact: true }).click();
+  await expect(second.getByRole('button', { name: 'Delete robot', exact: true })).toHaveCount(0);
+  await expect(second.getByRole('button', { name: 'Face West', exact: true })).toHaveCount(0);
+  await second.close();
+});
 test('real create/setup/step/play/pause/refresh/end flow and keyboard focus', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   await create(page); await image(page, '01-setup-desktop');

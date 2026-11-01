@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, untrack } from 'svelte';
-  import type { CommandInput, Lifecycle, Position, WorldAction } from '../lib/types.js';
+  import type { CommandInput, Facing, Lifecycle, Position, WorldAction } from '../lib/types.js';
   import type { SessionView } from '../lib/session.js';
   import { facingName, outcomeText, same } from '../lib/presentation.js';
   import Floor from './Floor.svelte';
@@ -25,6 +25,9 @@
   let selected = $derived(floorState.robots.find(r => r.id === selectedId));
   let editable = $derived((lifecycle === 'SETTING_UP' || lifecycle === 'PAUSED') && view.connection === 'live' && !view.pending);
   let available = $derived(view.connection === 'live' && !view.pending);
+  let setupEditable = $derived(lifecycle === 'SETTING_UP' && editable);
+  const facings: readonly Facing[] = ['NORTH', 'EAST', 'SOUTH', 'WEST'];
+  $effect(() => { if (selectedId && !floorState.robots.some(r => r.id === selectedId)) { selectedId = ''; pickTarget = false; } });
   let reason = $derived(view.connection !== 'live' ? 'Wait for the simulator connection.' : view.pending ? 'Wait for the current change to finish.' : permissions[lifecycle]);
   let outcomes = $derived(world.historyEntries.flatMap(e => e.effects.outcomes ?? []));
   let lastTickEntry = $derived([...view.history].reverse().find(e => e.effects.outcomes));
@@ -142,6 +145,15 @@
       {#if inspectorOpen}
       {#if selected}
         <div class="inspector-heading"><div class="inspector-marker"><Marker robot={selected} selected/></div><div><h3>{selected.id}</h3><p class="mono small">at ({selected.position.x},{selected.position.y}) · facing {facingName(selected.facing)}</p><Battery value={selected.battery} {reduced} animate={view.adjacent && (world.runningTickIntervalMs ?? 1000) >= 500}/></div></div>
+        {#if lifecycle === 'SETTING_UP'}
+          <div class="bar" role="group" aria-label="Setup facing direction">
+            {#each facings as facing}<button aria-pressed={selected.facing === facing} aria-disabled={!setupEditable} aria-describedby="control-reason" onclick={() => setupEditable && selected && send({ type: 'SET_ROBOT_FACING', robotId: selected.id, facing })}>Face {facingName(facing)}</button>{/each}
+          </div>
+          <p class="hint">Set facing immediately. Queued commands stay in order.</p>
+          <button aria-disabled={!setupEditable} aria-describedby="control-reason" onclick={() => setupEditable && selected && send({ type: 'REMOVE_ROBOT', robotId: selected.id })}>{delayedPending === 'REMOVE_ROBOT' ? 'Deleting…' : 'Delete robot'}</button>
+          <p class="hint">Deleting this robot also removes its queue.</p>
+          {#if delayedPending === 'SET_ROBOT_FACING'}<p class="hint" role="status">Saving facing direction…</p>{/if}
+        {/if}
         <div class="panel-heading"><h3>Queue, in run order ({selected.queue.length})</h3><button aria-disabled={!editable || !selected.queue.length} aria-describedby="control-reason" onclick={() => editable && selected && selected.queue.length && send({ type: 'CLEAR_QUEUE', robotId: selected.id })}>Clear Queue</button></div>
         <Queue queue={selected.queue} {reduced} animate={editable}/>{#if delayedPending === 'ENQUEUE_COMMANDS' || delayedPending === 'CLEAR_QUEUE'}<p class="hint" role="status">Saving queue change…</p>{/if}
         <p class="hint">Forward means MOVE in the way {selected.id} faces when the command runs. Now facing {facingName(selected.facing)}.</p>

@@ -201,7 +201,10 @@ npm run dev
 
 Vite proxies `/api` (including SSE) to the local API, so no CORS setup is needed.
 Create defaults to 10 × 8. Place robots/features, select a robot, queue commands,
-and Finish Setup before Step or Play. Up queues Forward/MOVE relative to facing;
+and use the selected-robot inspector to set facing immediately or Delete robot
+during Setup. Deletion also removes that robot's queue. These controls are
+available only before Finish Setup; facing changes preserve queued commands.
+Finish Setup before Step or Play. Up queues Forward/MOVE relative to facing;
 Left/Right queue turns. Shortcuts apply in the floor/command area, away from
 inputs. C toggles cursor navigation; Enter applies the current tool/selects,
 and Shift+Enter or Shift-click queues GOTO for the selected robot. Typed GOTO

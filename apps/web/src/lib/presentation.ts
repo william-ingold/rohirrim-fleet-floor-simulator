@@ -12,6 +12,8 @@ export function historyName(entry: HistoryEntry): string {
     case 'RESIZE': return `Resized floor to ${a.width} × ${a.height}`;
     case 'ENQUEUE_COMMANDS': return `Queued ${a.commands.map(c => c.type === 'GOTO' ? `GOTO ${coordinate(c.target)}` : c.type).join(', ')} for ${a.robotId}`;
     case 'CLEAR_QUEUE': return `Cleared ${a.robotId}'s queue`;
+    case 'REMOVE_ROBOT': return `Deleted ${a.robotId} and its queue`;
+    case 'SET_ROBOT_FACING': return `Set ${a.robotId} facing ${facingName(a.facing)}`;
     case 'FINISH_SETUP': return 'Finished setup; initial state saved';
     case 'PLAY': return `Play at ${a.tickIntervalMs} ms`;
     case 'PAUSE': return 'reason' in a ? a.reason === 'SERVER_RESTART' ? 'Paused after server restart' : 'Paused automatically: no browser tabs connected' : 'Paused';

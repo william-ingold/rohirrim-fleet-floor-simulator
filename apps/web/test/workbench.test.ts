@@ -7,6 +7,35 @@ import type { WorldAction, WorldResponse } from '../src/lib/types.js';
 const world: WorldResponse = { worldId: 'test', revision: 2, snapshotVersion: 1, runningTickIntervalMs: null, historyEntries: [], state: { width: 10, height: 8, tick: 0, lifecycle: 'SETTING_UP', obstacles: [], chargers: [], robots: [{ id: 'R1', position: { x: 1, y: 0 }, facing: 'EAST', battery: 64, queue: [{ type: 'GOTO', target: { x: 8, y: 6 }, consecutiveNoPathTicks: 2 }] }] } };
 function view(override: Partial<SessionView> = {}): SessionView { return { world, history: [], historyCursor: 0, connection: 'live', pending: '', error: '', stopped: false, missing: false, historyError: '', adjacent: false, previous: null, ...override }; }
 describe('simulation workbench', () => {
+ it('sets setup facing immediately and deletes only after authoritative state arrives', async () => {
+  const act = vi.fn(async (_action: WorldAction) => true);
+  const component = render(Workbench, { view: view(), act, createAnother: vi.fn(), retryHistory: vi.fn() });
+  await fireEvent.click(screen.getByRole('gridcell', { name: /^x 1, y 0, R1/ }));
+  await fireEvent.click(screen.getByRole('button', { name: 'Face West' }));
+  expect(act).toHaveBeenLastCalledWith({ type: 'SET_ROBOT_FACING', robotId: 'R1', facing: 'WEST' });
+  expect(screen.getByRole('gridcell', { name: /^x 1, y 0, R1 facing East/ })).toBeTruthy();
+  await fireEvent.click(screen.getByRole('button', { name: 'Delete robot' }));
+  expect(act).toHaveBeenLastCalledWith({ type: 'REMOVE_ROBOT', robotId: 'R1' });
+  expect(screen.getByRole('heading', { name: 'R1' })).toBeTruthy();
+  await component.rerender({ view: view({ world: { ...world, revision: 3, state: { ...world.state, robots: [] } } }) });
+  expect(screen.queryByRole('button', { name: 'Delete robot' })).toBeNull();
+  await component.rerender({ view: view({ world: { ...world, revision: 4 } }) });
+  expect(screen.queryByRole('heading', { name: 'R1' })).toBeNull();
+ });
+ it.each([
+  { lifecycle: 'PAUSED' as const }, { lifecycle: 'PLAYING' as const }, { lifecycle: 'ENDED' as const },
+  { connection: 'reconnecting' as const }, { pending: 'REMOVE_ROBOT' },
+ ])('prevents setup robot edits when restricted: %j', async restriction => {
+  const act = vi.fn(async (_action: WorldAction) => true);
+  const v = view(restriction); if ('lifecycle' in restriction) v.world = { ...world, state: { ...world.state, lifecycle: restriction.lifecycle } };
+  render(Workbench, { view: v, act, createAnother: vi.fn(), retryHistory: vi.fn() });
+  await fireEvent.click(screen.getByRole('gridcell', { name: /^x 1, y 0, R1/ }));
+  for (const name of ['Face West', 'Delete robot']) {
+   const button = screen.queryByRole('button', { name });
+   if (button) { expect(button.getAttribute('aria-disabled')).toBe('true'); await fireEvent.click(button); }
+  }
+  expect(act).not.toHaveBeenCalled();
+ });
  it('maps southwest coordinates and sends placement without changing the floor optimistically (U01/U02)', async () => {
   const act = vi.fn(async (_action: WorldAction) => true); render(Workbench, { view: view(), act, createAnother: vi.fn(), retryHistory: vi.fn() });
   const cell = screen.getByRole('gridcell', { name: /^x 2, y 1, empty/ });
