@@ -512,3 +512,32 @@ Actually viewed the dense desktop and default 390px captures. Typecheck caught
 SQLite row types); fixed those and reran with zero errors/warnings. These were
 AI-authored test typing mistakes, not product defects. No assistive-technology,
 Firefox/WebKit, physical-touch or performance certification is claimed.
+
+Phase 6 final gate: created a separate tracked-source copy under
+/tmp/rohirrim-phase6-clean-iamykoe5, including current source edits and the new
+review test. npm ci --offline --cache /tmp/rohirrim-npm-cache installed 621
+packages without replacing the workspace node_modules. Its full npm test passed
+116 engine/CLI + 72 API + 28 frontend = 216 tests, including native SQLite.
+Copied the browser test's type-only correction into that copy and ran strict
+typecheck successfully. Deprecation and skipped native build-script warnings
+were emitted; packaged native binaries worked. Offline npm's zero-findings
+message is not claimed as a fresh online vulnerability audit.
+
+Final workspace npm test rebuilt all four workspaces and passed the same 216
+tests. npm run typecheck reported zero Svelte errors/warnings; git diff --check
+passed. The documented root goto-charger scenario invocation printed the six
+expected report lines. Added PHASE6_RESULTS.md with ranked fixed findings,
+source/test traces, all five supplied-scenario results, actual checks and limits.
+Added current-status notes to architecture/handoff while preserving their user's
+uncommitted edits; staged only these new notes and D066 from already-dirty docs.
+README/RUNNING explain review operation and module selection/scope.
+
+The user also asked whether REPORT/TICK and the other brief commands exist.
+Reread the brief and parser/UI sources. Documented complete CLI core+A/B command
+support and the UI mapping: Step advances one tick; floor/inspector/list expose
+report data. Explicitly documented absent UI exact-N stepping, text report/export,
+explicit IDs and direct relocation, plus the deliberate FLOOR resize distinction.
+This question did not authorize adding new UI features. No behavior ambiguity
+was silently resolved. A README patch first failed context verification without
+changing files, then was reapplied correctly. Existing user planning/design edits
+remain outside the focused commits; no push or service redeployment occurred.

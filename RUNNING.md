@@ -89,7 +89,15 @@ the parent directory must already exist and be writable.
 npm run test:http       # build and check HTTP/startup behavior
 npm run typecheck       # TypeScript and Svelte diagnostics
 npm test                # build and run the full test suite
+npm run test:scenario   # CLI checks, including all five original test-scenarios files
+npm run test:browser    # production Chromium checks; requires installed browser
 ```
+
+Install Chromium once with `npx playwright install chromium`. If the standard
+test ports 3000/5173 are occupied, keep other services running and use
+`FLEET_TEST_API_PORT=3101 FLEET_TEST_WEB_PORT=5273 npm run test:browser` with two
+free ports. The browser suite uses its own temporary SQLite database. See
+[Phase 6 results](docs/handoff/PHASE6_RESULTS.md) for executed review evidence.
 
 If Docker cannot be reached, start Docker Desktop and check Ubuntu integration.
 If startup reports a port binding error, stop the process using that port or use

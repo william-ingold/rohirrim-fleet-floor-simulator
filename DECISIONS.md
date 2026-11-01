@@ -647,6 +647,28 @@ snapshot/history transaction and committed-update publication. No snapshot/SQL
 format change or CLI directive is required. UI changes follow committed state,
 disable during pending/disconnected states, and clear a deleted selection.
 
+### D066 — Phase 6 corrections and isolated verification
+
+The phase 6 review on 2026-11-01 preserves the approved lifecycle and transport
+contract. A newer committed Playing view with a non-null running interval clears
+a tab's obsolete scheduler-error flag: another tab may have completed Pause/Play
+while this one was disconnected. Same-revision responses cannot erase the error,
+and the client never sends an automatic Play. This implements D058/D061/D062;
+it introduces no new recovery policy.
+
+Floor-cell Enter/Space activation obeys the same repeat and Alt/Ctrl/Meta guards
+as cursor and command shortcuts. Shift remains available for GOTO. A regression
+showed that bypassing those guards appended unintended commands; the correction
+implements the already-approved keyboard behavior rather than changing it.
+
+Browser review can select two free ports through FLEET_TEST_API_PORT and
+FLEET_TEST_WEB_PORT, retaining 3000/5173 defaults. Tests start their own servers
+and temporary database, so validation need not stop or reuse existing services.
+FLEET_TEST_SCREENSHOTS optionally separates new captures from prior evidence.
+Original supplied scenario files remain untouched; real CLI process tests compare
+all five against independently transcribed expected reports. See Phase 6 results
+for actual red/green evidence and validation limits.
+
 ## Specification ambiguities awaiting resolution
 
 - If module C is selected: historical boundaries around edits between ticks.

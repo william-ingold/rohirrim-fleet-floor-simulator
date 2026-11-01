@@ -1,5 +1,12 @@
 # Fleet Floor Simulator: implementation handoff
 
+Implementation status, 2026-11-01: phases 1–5 and the phase 6 review gate are
+complete within the documented limits. Start with [README](README.md),
+[RUNNING](RUNNING.md), and [Phase 6 results](docs/handoff/PHASE6_RESULTS.md) for
+current operation and evidence. Planning-only status statements below describe
+the original handoff session; they do not describe the current source tree.
+
+
 Status: planning artifacts only. This chat does not authorize scaffolding or
 application implementation. Use the prompts below in a later implementation
 session when the user authorizes it.

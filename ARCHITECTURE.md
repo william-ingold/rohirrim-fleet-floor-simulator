@@ -1,5 +1,12 @@
 # Fleet Floor Simulator architecture
 
+Implementation status, 2026-11-01: engine, CLI, SQLite/Nest API, scheduler,
+SSE/presence and Svelte workbench are implemented. Phase 6 reviewed the complete
+path and fixed two frontend defects; see [review results](docs/handoff/PHASE6_RESULTS.md)
+and [README](README.md) for current behavior and checks. The planning status and
+session-scope statements below are historical records of the original design.
+
+
 Status: architecture planning. Confirmed decisions and proposals are marked separately.
 No application implementation has started.
 

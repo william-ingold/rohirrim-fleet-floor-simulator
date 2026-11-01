@@ -11,6 +11,13 @@ Phase 3 / B3 adds SQLite migrations and the durable application service.
 Phase 3 / B4 adds the Nest HTTP API and a post-commit publication seam.
 Phase 4 / B5 adds generation-safe scheduling, transient presence and bounded SSE.
 Phase 5 adds the Svelte/Vite workbench and browser HTTP/SSE/presence integration.
+Phase 6 reviews the complete path and records fixes, test evidence, and limits in
+[Phase 6 results](docs/handoff/PHASE6_RESULTS.md).
+
+Selected depth modules are **A (GOTO)** and **B (battery/chargers)**: they deepen
+the shared engine's deterministic movement and interacting tick rules. Module C
+timeline/fork is omitted. Live tab synchronization is implemented, but full module
+D completion is not claimed.
 
 Use Node **26.13.0** (also pinned in `.nvmrc`) and its bundled npm:
 
@@ -121,6 +128,8 @@ not finish setup; the first valid TICK captures t0 then steps. EOF finishes setu
 if necessary and ends without draining queues, adding ticks or printing a final
 report. Inputs in [scenarios/](scenarios/) have separate `.stdout` expectations;
 the original mixed input/output `test-scenarios/` references remain unchanged.
+The CLI process suite executes all five original `test-scenarios/*.txt` files
+and compares their REPORT output exactly, including both reports in scenario 5.
 
 The engine owns simultaneous movement, validated snapshots, immutable queues,
 setup/paused/playing/ended guards and t0 capture. It has no runtime dependencies
@@ -136,7 +145,7 @@ evidence, SQLite setup, service types and remaining work,
 [HANDOFF.md](HANDOFF.md), [DECISIONS.md](DECISIONS.md) and
 [ARCHITECTURE.md](ARCHITECTURE.md) retain the planning record; their earlier
 planning-only status describes that session. This implementation is limited to
-the separately authorized B1/B2/B3/B4/B5 and phase 5 slices. AI contributions are in [AI_USAGE.md](AI_USAGE.md).
+the separately authorized B1/B2/B3/B4/B5, phase 5, and phase 6 review slices. AI contributions are in [AI_USAGE.md](AI_USAGE.md).
 
 Start the local HTTP API after installation:
 
@@ -235,3 +244,40 @@ They cover real creation/setup/playback/refresh/end, 20 × 20 with 60 robots,
 and SQL-triggered scheduler failure/recovery. Screenshots are retained under
 [docs/handoff/phase5/screenshots/](docs/handoff/phase5/screenshots/).
 No assistive-technology certification, cross-browser or performance claim is made.
+
+To leave existing services running, select two free browser-test ports:
+
+```sh
+FLEET_TEST_API_PORT=3101 FLEET_TEST_WEB_PORT=5273 npm run test:browser
+```
+
+Tests always start their own API and production preview; they never reuse an
+existing server. They also check real history-write rollback with no broadcast,
+and recovery when a disconnected tab misses another tab's Pause/Play.
+Set `FLEET_TEST_SCREENSHOTS=/tmp/fleet-review-captures` to keep review captures
+separate from the retained Phase 5 screenshots.
+
+## CLI commands and UI equivalents
+
+The CLI accepts the complete core and selected A/B command vocabulary. The UI
+has controls for simulation and state inspection, rather than a command prompt.
+
+| Scenario directive | Workbench control or display |
+| --- | --- |
+| `FLOOR W,H` | Create world; Width/Height and Apply size during Setup |
+| `OBSTACLE X,Y` | Obstacle tool, then click a cell; UI also removes obstacles |
+| `PLACE Rn X,Y,F` | Click an empty cell for an automatic ID and North facing; select a robot for Setup facing controls |
+| `QUEUE Rn MOVE LEFT RIGHT` | Select a robot; Forward/Left/Right buttons or Up/Left/Right keys append commands |
+| `QUEUE Rn GOTO X,Y` | Queue GOTO inputs, Pick on floor, or Shift-click/Shift+Enter |
+| `TICK` | Finish Setup, then Step advances exactly one tick |
+| `TICK N` | Repeat Step N times; no exact-N batch control. Play runs until paused, ended, or stopped |
+| `REPORT` | Current floor, inspector and All robots show IDs, positions and facings; no text report/export button |
+| `CHARGER X,Y` | Charger tool, then click a cell; UI also removes chargers |
+| `REPORT BATTERY` | Battery values in the inspector and All robots |
+
+`REPORT` and `TICK` are file directives; the brief names the UI tick button
+**Step**. Reports do not run commands or advance time. UI defaults to 10 × 8;
+CLI defaults to 5 × 5. UI resize preserves contents or rejects the resize;
+CLI FLOOR replaces an unfinished draft. The UI does not offer explicit robot IDs
+or direct relocation of an existing robot. Setup deletion and facing edits are
+available under D065; moving an existing robot afterward uses queued commands.
