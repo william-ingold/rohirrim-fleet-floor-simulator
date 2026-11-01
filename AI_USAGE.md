@@ -22,3 +22,10 @@ immutable snapshots, Robot/Command classes, aggregate edits and lifecycle table;
 all six passed. `npm run typecheck` and `npm run build` passed. Refactor removed
 an assertion that merely checked method existence. No claim of human review or
 AI mistakes caught by the user is made.
+
+Second red run: all 11 movement tests failed (tick and resolver not implemented),
+while the original six passed. Added shared-snapshot Command propose/resolve,
+independent collective movement resolution, Robot tick effects and World commit.
+All 17 tests, strict typecheck and engine build passed. Refactored duplicate turn
+planning into a helper and reran checks before committing. Resolver permutations
+exercise unsorted robot and intent inputs, not merely sorted World construction.

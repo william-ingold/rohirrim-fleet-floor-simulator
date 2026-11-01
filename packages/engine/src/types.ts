@@ -15,6 +15,22 @@ export type WorldSnapshot = {
   readonly lifecycle: Lifecycle; readonly obstacles: readonly Position[];
   readonly chargers: readonly Position[]; readonly robots: readonly RobotSnapshot[];
 };
+export type BlockedReason = 'NO_BATTERY' | 'OUT_OF_BOUNDS' | 'OBSTACLE' | 'CONTESTED' | 'HEAD_ON_SWAP' | 'OCCUPIED';
+export type Movement = { readonly status: 'NOT_ATTEMPTED' | 'SUCCEEDED' } | {
+  readonly status: 'BLOCKED'; readonly reason: BlockedReason; readonly blockerId?: string;
+};
+export type CommandProgress = { readonly status: 'NONE' } |
+  { readonly status: 'COMPLETED' | 'CONTINUING'; readonly type: CommandSnapshot['type'] } |
+  { readonly status: 'ABANDONED'; readonly type: 'GOTO'; readonly reason: 'UNREACHABLE' };
+export type RobotTickOutcome = {
+  readonly robotId: string; readonly position: Position; readonly facing: Facing;
+  readonly battery: number; readonly movement: Movement; readonly command: CommandProgress;
+};
+export const forward = (position: Position, facing: Facing): Position => {
+  const deltas = { NORTH: [0, 1], EAST: [1, 0], SOUTH: [0, -1], WEST: [-1, 0] } as const;
+  const [dx, dy] = deltas[facing];
+  return { x: position.x + dx, y: position.y + dy };
+};
 export class DomainError extends Error {
   constructor(message: string, readonly code: 'INVALID_REQUEST' | 'INVALID_PLACEMENT' | 'INVALID_LIFECYCLE' = 'INVALID_REQUEST') {
     super(message); this.name = 'DomainError';

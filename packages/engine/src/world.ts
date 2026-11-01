@@ -1,8 +1,11 @@
 import { guard, transition } from './lifecycle.js';
 import { Robot } from './robot.js';
+import { resolveMovement } from './movement.js';
 import { validateCommand, validateSnapshot } from './snapshots.js';
-import { canonicalId, DomainError, inBounds, requireDomain, samePosition } from './types.js';
-import type { CommandInput, CommandSnapshot, Facing, Position, WorldSnapshot } from './types.js';
+import { canonicalId, DomainError, freeze, inBounds, key, requireDomain, samePosition } from './types.js';
+import type { CommandInput, CommandSnapshot, Facing, Position, RobotTickOutcome, WorldSnapshot } from './types.js';
+
+export type TickResult = { readonly world: World; readonly outcomes: readonly RobotTickOutcome[] };
 
 export class World {
   readonly #state: WorldSnapshot;
@@ -89,5 +92,20 @@ export class World {
     this.edit(); const robot = this.robot(id);
     return robot.snapshot.queue.length === 0 ? this : this.replaceRobot(robot.clearQueue());
   }
-  step(): never { guard(this.#state.lifecycle, ['PAUSED']); throw new Error('Tick not implemented'); }
+  step(): TickResult { guard(this.#state.lifecycle, ['PAUSED']); return this.tick(); }
+  /** Application adapter must additionally check playback generation/presence. */
+  automaticTick(): TickResult { guard(this.#state.lifecycle, ['PLAYING']); return this.tick(); }
+  private tick(): TickResult {
+    requireDomain(this.#state.tick < Number.MAX_SAFE_INTEGER, 'Tick overflow');
+    const plans = this.#robots.map(r => r.propose(this.#state));
+    const intents = plans.flatMap((plan, i) => plan?.destination ? [{ robotId: this.#robots[i]!.snapshot.id, destination: plan.destination }] : []);
+    const movement = new Map(resolveMovement(this.#state, intents).map(r => [r.robotId, r.movement]));
+    const chargers = new Set(this.#state.chargers.map(key));
+    const next = this.#robots.map((robot, i) => {
+      const result = movement.get(robot.snapshot.id)!;
+      const destination = result.status === 'SUCCEEDED' ? plans[i]!.destination! : robot.snapshot.position;
+      return robot.resolveTick(plans[i]!, result, chargers.has(key(destination)));
+    });
+    return Object.freeze({ world: this.replace({ tick: this.#state.tick + 1, robots: next.map(r => r.robot.snapshot) }), outcomes: freeze(next.map(r => r.outcome)) });
+  }
 }
