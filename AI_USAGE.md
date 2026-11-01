@@ -196,3 +196,28 @@ factory owning its DB connection. The first compile caught a Nest 12 adapter
 interface mismatch; corrected to the required HttpServer reply capability.
 The sandbox blocked Supertest listen with EPERM; rerunning outside the sandbox
 passed all 17. Production engine and B3 persistence behavior unchanged.
+
+B4 publication/startup increment: added a post-commit coordinator and explicit
+publication stub. New test ran red (1 failed/17 passed), then a broader audit
+ran red (2 failed/19 passed): publication absent and bodyless Create rejected.
+Implemented synchronous ordered notification, isolated subscriber copies,
+unsubscription and delivery/diagnostic error isolation; optional Create body
+uses defaults. All 21 HTTP tests passed. Real competing-writer 503, corrupted
+snapshot/version 500 and restart-before-HTTP cases passed on introduction, not
+claimed red. A hand-authored GOTO JSON fixture, baseline/resize and reentrant
+publication audits also passed on introduction. Refactor removed framework
+logging dependency from the post-commit seam; no persistence/engine changes.
+
+Both executable tests failed against an explicit stub. Added a localhost
+entry point, validated PORT, database ownership, Nest shutdown hooks and root
+start/test scripts. A green attempt had 25 passing/1 failing: the test incorrectly
+expected status 0 on SIGTERM. Inspected installed Nest lifecycle code (it forwards
+the signal after shutdown) and corrected the oracle to SIGTERM. This is Codex's
+test mistake, not a product defect or claimed user rejection. Full suite then
+passed 159 tests, strict typecheck and diff check. A subsequent content-type
+audit found an implementation defect: text/plain Create was ignored and created
+a default world. Focused test actually failed (201 vs 400); added a JSON request
+guard. Final full npm test rebuilt engine/CLI/API and passed 160 tests (108 Vitest,
+25 persistence + 25 HTTP + 2 bootstrap Jest). Strict npm run typecheck and
+Git diff check passed. Supertest/CLI process checks required escalation.
+No clean reinstall, coverage, performance, browser or real SSE claim in B4.

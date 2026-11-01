@@ -24,3 +24,6 @@ lerna-debug.log*
 # temp directory
 .temp
 .tmp
+
+# Default local API database and WAL/SHM companions
+/fleet-floor.sqlite*

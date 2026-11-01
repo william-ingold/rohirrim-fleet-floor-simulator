@@ -1,4 +1,5 @@
 import { Body, Controller, Get, HttpCode, Inject, Param, Post, Query } from '@nestjs/common';
+import { CommittedActions } from '../floors/committed-actions.js';
 import { WorldService } from '../floors/world-service.js';
 import type { CommittedWorld } from '../floors/types.js';
 import { parseAction, parseCreate, parseHistory } from './validation.js';
@@ -9,18 +10,18 @@ function envelope(world: CommittedWorld): WorldResponse {
 }
 @Controller('api/worlds')
 export class WorldsController {
-  constructor(@Inject(WorldService) private readonly worlds: WorldService) {}
+  constructor(@Inject(WorldService) private readonly worlds: WorldService, @Inject(CommittedActions) private readonly actions: CommittedActions) {}
   @Post()
   create(@Body() body: unknown): WorldResponse {
     const input = parseCreate(body);
-    return envelope(this.worlds.create(input.width, input.height));
+    return envelope(this.actions.create(input.width, input.height));
   }
   @Get(':id')
   get(@Param('id') id: string): WorldResponse { return envelope(this.worlds.get(id)); }
   @Post(':id/actions')
   @HttpCode(200)
   act(@Param('id') id: string, @Body() body: unknown) {
-    const result = this.worlds.act(id, parseAction(body));
+    const result = this.actions.act(id, parseAction(body));
     return 'cancelled' in result ? result : envelope(result);
   }
   @Get(':id/history')

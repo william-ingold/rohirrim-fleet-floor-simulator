@@ -1,0 +1,23 @@
+{
+  "create": { "width": 2, "height": 1 },
+  "actions": [
+    { "type": "PLACE_ROBOT", "position": { "x": 0, "y": 0 }, "facing": "EAST" },
+    { "type": "ENQUEUE_COMMANDS", "robotId": "R1", "commands": [{ "type": "GOTO", "target": { "x": 1, "y": 0 } }] },
+    { "type": "FINISH_SETUP" },
+    { "type": "STEP" }
+  ],
+  "response": {
+    "worldId": "<worldId>", "revision": 5, "snapshotVersion": 1, "runningTickIntervalMs": null,
+    "state": {
+      "width": 2, "height": 1, "tick": 1, "lifecycle": "PAUSED", "obstacles": [], "chargers": [],
+      "robots": [{ "id": "R1", "position": { "x": 1, "y": 0 }, "facing": "EAST", "battery": 99, "queue": [] }]
+    },
+    "historyEntries": [{
+      "worldId": "<worldId>", "revision": 5, "tick": 1, "timestamp": "<timestamp>", "action": { "type": "STEP" },
+      "effects": { "outcomes": [{
+        "robotId": "R1", "position": { "x": 1, "y": 0 }, "facing": "EAST", "battery": 99,
+        "movement": { "status": "SUCCEEDED" }, "command": { "status": "COMPLETED", "type": "GOTO" }
+      }] }
+    }]
+  }
+}

@@ -44,7 +44,7 @@ function command(value: unknown): CommandInput {
   return { type: input.type };
 }
 export function parseCreate(value: unknown): { width?: number; height?: number } {
-  const input = object(value); fields(input, ['width', 'height']);
+  const input = object(value === undefined ? {} : value); fields(input, ['width', 'height']);
   return { ...('width' in input ? { width: size(input.width) } : {}), ...('height' in input ? { height: size(input.height) } : {}) };
 }
 export function parseAction(value: unknown): WorldAction {
