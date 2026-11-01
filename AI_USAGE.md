@@ -91,3 +91,14 @@ setup behavior, numeric contention/re-placement progress) passed on introduction
 no red claim is made for these. Full suite: 108 tests in five files passed,
 strict typecheck and both builds passed; git diff --check passed. Process tests
 require escalation in this environment. No API/UI or dependency upgrades added.
+
+Final verification: cached clean reinstall via npm ci --offline --cache
+/tmp/rohirrim-npm-cache --ignore-scripts added 40 packages with zero reported
+vulnerabilities. Full npm test rebuilt both workspaces and passed 108 tests in
+five files; strict typecheck passed. Standalone mandatory root invocation of
+scenarios/goto-charger.txt built and printed the six independently expected
+report lines. Updated README and B2_RESULTS with actual scope, seam, errors,
+commands and remaining IDs, including S09/S10/U08 added to the planning matrix
+since B1's report. No new decisions or changes to the frozen contract. Ordinary
+online npm ci, API integration, frontend readiness, full phase-0 gate,
+performance and coverage were not claimed.
