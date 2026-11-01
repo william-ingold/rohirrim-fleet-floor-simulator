@@ -4,7 +4,8 @@ Phase 1 / B1 implements the pure immutable engine for the core, module A (GOTO),
 and module B (battery/chargers). Phase 2 / B2 adds the isolated scenario CLI.
 Phase 3 / B3 adds SQLite migrations and the durable application service.
 Phase 3 / B4 adds the Nest HTTP API and a post-commit publication seam.
-The UI, scheduler, presence and SSE streams remain unimplemented.
+Phase 4 / B5 adds generation-safe scheduling, transient presence and bounded SSE.
+The UI remains unimplemented.
 
 Use Node **26.13.0** (also pinned in `.nvmrc`) and its bundled npm:
 
@@ -17,7 +18,7 @@ npm run build
 
 `npm run test:engine` runs only engine tests. `npm run test:scenario` builds and
 runs CLI tests, including real child processes. `npm test` builds all three workspaces
-before running all tests: Vitest for engine/CLI, Jest for SQLite/HTTP/bootstrap. The build emits
+before running all tests: Vitest for engine/CLI, Jest for SQLite/HTTP/bootstrap/playback/SSE. The build emits
 the public `@rohirrim/engine` workspace export, scenario executable and API. `npm run test:persistence` builds engine/API and
 runs SQLite tests only; `npm run test:http` builds and runs HTTP/bootstrap tests.
 The scenario command builds only engine/CLI and opens no database.
@@ -55,8 +56,8 @@ setup/paused/playing/ended guards and t0 capture. It has no runtime dependencies
 on frameworks, storage, timers or network. Turns and blocked moves are free;
 the approved battery example yields **98**, resolving the brief's conflicting 97.
 
-See [B4 results and HTTP fixtures](docs/handoff/B4_RESULTS.md) for the current
-HTTP scope, validation and B5 handoff,
+See [B4 results and HTTP fixtures](docs/handoff/B4_RESULTS.md) for the B4
+HTTP scope, validation and publication seam,
 [B3 results and setup](docs/handoff/B3_RESULTS.md) for current red/green
 evidence, SQLite setup, service types and remaining work,
 [B2 results](docs/handoff/B2_RESULTS.md) for CLI evidence, and
@@ -64,7 +65,7 @@ evidence, SQLite setup, service types and remaining work,
 [HANDOFF.md](HANDOFF.md), [DECISIONS.md](DECISIONS.md) and
 [ARCHITECTURE.md](ARCHITECTURE.md) retain the planning record; their earlier
 planning-only status describes that session. This implementation is limited to
-the separately authorized B1/B2/B3/B4 slices. AI contributions are in [AI_USAGE.md](AI_USAGE.md).
+the separately authorized B1/B2/B3/B4/B5 slices. AI contributions are in [AI_USAGE.md](AI_USAGE.md).
 
 Start the local HTTP API after installation:
 
@@ -95,6 +96,21 @@ throughRevision during catch-up. No expectedRevision or automatic mutation retry
 The [GOTO fixture](apps/api/test/fixtures/goto-step.json) contains exact sample
 actions and the expected committed response, normalizing only IDs/timestamps.
 
-PLAY still rejects new playback until B5 supplies presence and scheduling.
-`runningTickIntervalMs` is currently null. Events and presence routes are not
-implemented; B4 does not claim browser readiness or real streaming validation.
+B5 adds `GET /api/worlds/:id/events` (SSE) and `POST /api/worlds/:id/presence`.
+Open an SSE stream, Finish Setup, then PLAY with `tickIntervalMs` (100..5000).
+Renew the current `stream.ready` subscriptionId every 5s; its lease expires at
+15s. Closed streams retain remaining grace, but their IDs cannot renew. Last
+expiry commits Pause with NO_CLIENTS; reconnect requires explicit Play afterward.
+
+`runningTickIntervalMs` reports operational playback separately from saved state.
+After `scheduler.error`, it is null while the last committed lifecycle remains;
+recover with PAUSE then PLAY. SSE starts with ready/current snapshot and revision
+IDs on world events. Reconnect ignores Last-Event-ID and sends current state;
+fetch missed history separately. Streams close for resync at 64 queued frames or
+1MiB pending/socket bytes. Cancellation closes draft streams. Shutdown releases
+streams and timers before the DB closes.
+
+Run `npm run test:playback` for focused scheduler/presence/real HTTP SSE tests.
+See [B5 results](docs/handoff/B5_RESULTS.md) for exact protocol fixtures, TDD
+results, transport limits and remaining acceptance IDs. Frontend/browser flows
+remain unimplemented.

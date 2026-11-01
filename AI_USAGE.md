@@ -311,3 +311,9 @@ fix, not a changed presence policy. No further refactor was necessary.
 Final full regression after that timer fix: npm test rebuilt all workspaces and
 passed 108 Vitest + 69 Jest tests (177 total); npm run typecheck and git diff
 --check passed. This supersedes the earlier 175/176-test intermediate runs.
+
+Documented B5_RESULTS.md with actual acceptance evidence, red/green commands,
+fixtures, internal/exported seams, transport limits, setup and exact frontend
+handoff. Updated README to distinguish operational B5 playback from remaining
+UI work. The frozen contract and pre-existing user documentation/design edits
+were preserved. No pending behavior question or contract amendment was needed.
