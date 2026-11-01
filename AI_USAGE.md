@@ -29,3 +29,12 @@ independent collective movement resolution, Robot tick effects and World commit.
 All 17 tests, strict typecheck and engine build passed. Refactored duplicate turn
 planning into a helper and reran checks before committing. Resolver permutations
 exercise unsorted robot and intent inputs, not merely sorted World construction.
+
+GOTO/battery increment: first run had 14 failures; four came from incorrectly
+using queue arrays as Vitest table rows (arrays were unpacked as arguments).
+Codex diagnosed and corrected the table to object rows. The corrected red run
+had 11 missing-GOTO failures and 24 passing tests. Implemented BFS first-step
+planning, immutable consecutive-failure progress and arrival completion. All 35
+tests/typecheck/build passed. Refactored repeated GOTO completion construction.
+Battery cost/charging were already part of Robot tick effects, so the additional
+non-GOTO battery tests passed on introduction; no red claim is made for them.
