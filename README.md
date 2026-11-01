@@ -1,5 +1,10 @@
 # Fleet Floor Simulator
 
+Quick start in WSL: run `./run.sh`, then open **http://localhost:18080**.
+Docker Desktop must be running with Ubuntu WSL integration enabled.
+Use `./run.sh status`, `./run.sh logs`, and `./run.sh stop` to manage it.
+See [run commands](RUNNING.md) for Docker, native development, and verification.
+
 Phase 1 / B1 implements the pure immutable engine for the core, module A (GOTO),
 and module B (battery/chargers). Phase 2 / B2 adds the isolated scenario CLI.
 Phase 3 / B3 adds SQLite migrations and the durable application service.

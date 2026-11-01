@@ -420,3 +420,17 @@ Verified nginx configuration and uid=1000(node) in the API container. Root
 typecheck passed with zero Svelte errors/warnings, and git diff --check passed.
 Containers remain running at localhost:18080 (web) and localhost:3000 (API).
 Existing user planning/design changes were preserved. No deployment was performed.
+
+Startup helper and command reference (2026-11-01): added executable run.sh with
+default build/start, health waiting, published-address output, stop (preserving
+the database volume), status, service-scoped logs, and help. It locates Compose
+relative to the script and reports missing Docker/Compose/daemon access.
+RUNNING.md records Docker lifecycle and port overrides, persistent native WSL
+Node usage, the two-terminal Vite workflow, database locations, and checks.
+README links the command reference and provides the quick start.
+Verified Bash syntax, help, invalid argument rejection (exit 2), real startup
+through the helper, and status invoked from /tmp. Docker rebuilt successfully
+and both services became healthy. Existing Docker Desktop plugin/kernel warnings
+did not prevent startup. Committed only the API binding, container setup, and
+startup/documentation changes in focused groups; existing user planning/design
+edits remain uncommitted. No push or deployment.
