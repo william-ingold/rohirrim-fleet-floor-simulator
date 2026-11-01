@@ -1,0 +1,16 @@
+# GOTO detours NORTH around (1,0), reaches (2,0) in four ticks.
+# The next MOVE hits the east boundary; charging restores the final 2 points.
+FLOOR 3,2
+OBSTACLE 1,0
+CHARGER 2,0
+PLACE R1 0,0,WEST
+QUEUE R1 GOTO 2,0 LEFT MOVE
+TICK 3
+REPORT
+REPORT BATTERY
+TICK
+REPORT
+REPORT BATTERY
+TICK 2
+REPORT
+REPORT BATTERY

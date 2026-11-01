@@ -1,0 +1,7 @@
+# D010: two successful moves and one blocked move cost 2, not 3.
+FLOOR 3,1
+PLACE R1 0,0,EAST
+QUEUE R1 MOVE MOVE MOVE
+TICK 3
+REPORT
+REPORT BATTERY

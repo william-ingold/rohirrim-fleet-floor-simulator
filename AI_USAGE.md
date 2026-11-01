@@ -55,3 +55,26 @@ build passed. An actual ESM import through the built workspace export moved R1
 east once and asserted battery 99. `git diff --check` passed. Added README and
 B1_RESULTS with exact scope, seam, validation and remaining IDs. Existing user
 documentation modifications/design artifacts remain outside these commits.
+
+## Phase 2 / B2 — 2026-11-01
+
+User explicitly authorized B2 only and requested incremental focused commits.
+The closing B1 reference was treated as prior-slice context, as stated before
+implementation. No agents were delegated; existing planning/design edits are
+preserved. Read the master/backend prompts, B1 results, handoff, decisions,
+architecture CLI/testing sections, implementation plan, resolved review items,
+frozen contract, acceptance matrix, brief and existing references. Selected
+C01–C08, exercising the existing E/P/B/L engine behaviors through its built
+public workspace export. No engine semantics or contract changes were needed.
+
+First increment: 48 runner tests executed and failed against an explicit throwing
+stub. Implemented complete-line parsing, reports, isolated default 5 x 5 World,
+setup-only FLOOR replacement, first-TICK t0 capture, manual Steps and EOF End
+without draining queues. All 48 passed. Added seven hand-specified input/stdout
+pairs (five brief examples, approved battery 98, GOTO/charger detour), preserving
+test-scenarios/. Production engine output was not used to generate expectations.
+Refactored repeated test execution after green. Cached offline npm install added
+one local workspace link and updated the single lockfile without new external
+dependencies (zero vulnerabilities reported). Strict typecheck, scenario build,
+all 90 tests in four files and git diff --check passed on Node 26.13.0.
+The executable/root invocation and process-error checks remain the next increment.
