@@ -134,3 +134,18 @@ a fabricated saved-row value. npm run test:persistence passed all 8 after refact
 npm run typecheck and git diff --check passed. PLAY currently rejects pending
 its B5 adapter; startup validation/recovery is the next increment. No complete
 D01–D04 claim yet. Existing user documentation/design edits remain untouched.
+
+Startup increment: added recovery/corruption/migration/history tests. Actual red
+run: 6 failed, 13 passed (Playing stayed Playing; startup failed to reject corrupt
+or unsupported snapshots). Implemented startup validation of every world and
+atomic recovery of all Playing worlds with PAUSE/SERVER_RESTART audit entries.
+All 19 passed. Extracted recovery from the constructor and corrected fixture
+cleanup to close all connections before deleting directories. Five audit tests
+passed on introduction (no red claim): active GOTO rollback across reopen,
+latest-state callers/terminal End, missing t0, actual deferred-FK COMMIT failure
+with one observed attempt, and real competing-writer SQLITE_BUSY. All 24 Jest
+checks passed after refactor; strict typecheck and git diff --check passed.
+Full npm test outside sandbox built all three workspaces, then passed the prior
+108 Vitest engine/CLI tests and 24 Jest SQLite tests (132 total). npm run typecheck
+passed. No HTTP/SSE validation is claimed. Tests use saved Playing fixtures to
+exercise recovery; PLAY/presence/scheduler remain explicitly deferred to B5.

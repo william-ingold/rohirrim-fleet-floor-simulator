@@ -14,7 +14,20 @@ type SavedRow = { id: string; revision: number; snapshot_version: number; snapsh
 /** Synchronous execution serializes read/compute/write in the single API process.
  * No await, cache, network delivery or callback occurs within a transaction. */
 export class WorldService {
-  constructor(private readonly db: Database.Database) { migrate(db); }
+  /** Construct once at process startup, before exposing the service. */
+  constructor(private readonly db: Database.Database) {
+    migrate(db);
+    this.recover();
+  }
+  private recover(): void {
+    this.db.transaction(() => {
+      const ids = this.db.prepare('SELECT id FROM worlds ORDER BY id').all() as { id: string }[];
+      const saved = ids.map(({ id }) => this.load(id));
+      for (const { row, world } of saved) {
+        if (world.snapshot.lifecycle === 'PLAYING') this.save(row, world.pause(), { type: 'PAUSE', reason: 'SERVER_RESTART' }, {});
+      }
+    }).immediate();
+  }
 
   private load(id: string): { row: SavedRow; world: World } {
     const row = this.db.prepare('SELECT id, revision, snapshot_version, snapshot_json, t0_json FROM worlds WHERE id = ?').get(id) as SavedRow | undefined;
