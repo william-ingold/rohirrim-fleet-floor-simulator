@@ -375,3 +375,24 @@ scheduler.error retained Playing, removed Play, and Pause then Play recovered.
 A final audit tightened movement marks so non-tick updates retain the prior tick
 context but skipped revisions/reconnects discard it; added a regression test.
 Added pending/rejected cell affordances without optimistic world changes.
+
+Final screenshot review also caught Large-mode selection disappearing outside the
+floor after a viewport resize; the fixed-cell size had prevented the reveal
+effect from rerunning. The floor now observes viewport width as well, and the
+browser test asserts the selected cell remains in view. Expanded history details
+explicitly expose committed final facing, position, battery and command progress.
+A repeat sandbox regression was blocked by CLI spawnSync EPERM (15 process-test
+failures); it was rerun with escalation, without changing CLI behavior. Final
+commands/results are recorded after completion below.
+
+Final post-audit verification: escalated npm test rebuilt all four workspaces and
+passed 108 engine/CLI + 69 API + 20 frontend tests (197). Root npm run typecheck
+passed with zero Svelte errors/warnings, and git diff --check passed. Standalone
+npm run scenario -- scenarios/goto-charger.txt printed the six expected lines.
+Final real Chromium suite passed all seven cases, including selected-cell
+visibility after resize and immediate reduced-motion movement without transform
+animations. Six screenshots were refreshed; desktop, dense mobile and default
+mobile captures were actually viewed. README and PHASE5_RESULTS.md document
+local setup, acceptance, actual failures/fixes, checks, limits and the phase 6
+handoff. No frozen-contract amendment or unresolved material question. Existing
+user planning/design changes remain outside these focused frontend commits.

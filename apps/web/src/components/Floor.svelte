@@ -31,8 +31,10 @@
     if (selected) {
       cursor = selected.position;
       const size = cell;
+      // A viewport resize must also reveal the selection when Large keeps cells fixed.
+      const viewportWidth = available;
       void tick().then(() => {
-        if (!scroller) return;
+        if (!scroller || viewportWidth <= 0) return;
         const x = selected.position.x * size + 28, y = (world.state.height - selected.position.y - 1) * size;
         if (x < scroller.scrollLeft + 28 || x + size > scroller.scrollLeft + scroller.clientWidth) scroller.scrollLeft = Math.max(0, x - (scroller.clientWidth - size) / 2);
         if (y < scroller.scrollTop || y + size > scroller.scrollTop + scroller.clientHeight) scroller.scrollTop = Math.max(0, y - (scroller.clientHeight - size) / 2);

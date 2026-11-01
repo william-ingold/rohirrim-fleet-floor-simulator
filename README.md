@@ -5,7 +5,7 @@ and module B (battery/chargers). Phase 2 / B2 adds the isolated scenario CLI.
 Phase 3 / B3 adds SQLite migrations and the durable application service.
 Phase 3 / B4 adds the Nest HTTP API and a post-commit publication seam.
 Phase 4 / B5 adds generation-safe scheduling, transient presence and bounded SSE.
-The UI remains unimplemented.
+Phase 5 adds the Svelte/Vite workbench and browser HTTP/SSE/presence integration.
 
 Use Node **26.13.0** (also pinned in `.nvmrc`) and its bundled npm:
 
@@ -17,9 +17,11 @@ npm run build
 ```
 
 `npm run test:engine` runs only engine tests. `npm run test:scenario` builds and
-runs CLI tests, including real child processes. `npm test` builds all three workspaces
-before running all tests: Vitest for engine/CLI, Jest for SQLite/HTTP/bootstrap/playback/SSE. The build emits
-the public `@rohirrim/engine` workspace export, scenario executable and API. `npm run test:persistence` builds engine/API and
+runs CLI tests, including real child processes. `npm test` builds all four workspaces
+before running all tests: Vitest for engine/CLI and Svelte UI, Jest for
+SQLite/HTTP/bootstrap/playback/SSE. The build emits the public `@rohirrim/engine`
+workspace export, scenario executable, API and production web assets.
+`npm run test:persistence` builds engine/API and
 runs SQLite tests only; `npm run test:http` builds and runs HTTP/bootstrap tests.
 The scenario command builds only engine/CLI and opens no database.
 
@@ -65,7 +67,7 @@ evidence, SQLite setup, service types and remaining work,
 [HANDOFF.md](HANDOFF.md), [DECISIONS.md](DECISIONS.md) and
 [ARCHITECTURE.md](ARCHITECTURE.md) retain the planning record; their earlier
 planning-only status describes that session. This implementation is limited to
-the separately authorized B1/B2/B3/B4/B5 slices. AI contributions are in [AI_USAGE.md](AI_USAGE.md).
+the separately authorized B1/B2/B3/B4/B5 and phase 5 slices. AI contributions are in [AI_USAGE.md](AI_USAGE.md).
 
 Start the local HTTP API after installation:
 
@@ -112,5 +114,52 @@ streams and timers before the DB closes.
 
 Run `npm run test:playback` for focused scheduler/presence/real HTTP SSE tests.
 See [B5 results](docs/handoff/B5_RESULTS.md) for exact protocol fixtures, TDD
-results, transport limits and remaining acceptance IDs. Frontend/browser flows
-remain unimplemented.
+results, transport limits and remaining acceptance IDs. Frontend/browser validation and remaining verification limits are recorded in
+[phase 5 results](docs/handoff/PHASE5_RESULTS.md).
+
+
+## Run the workbench
+
+With Node 26.13.0 and dependencies installed, use two terminals:
+
+```sh
+# Terminal 1: real durable API, port 3000
+DATABASE_PATH=/tmp/fleet-floor.sqlite npm run start:api
+
+# Terminal 2: Svelte/Vite, normally http://127.0.0.1:5173
+npm run dev
+```
+
+Vite proxies `/api` (including SSE) to the local API, so no CORS setup is needed.
+Create defaults to 10 × 8. Place robots/features, select a robot, queue commands,
+and Finish Setup before Step or Play. Up queues Forward/MOVE relative to facing;
+Left/Right queue turns. Shortcuts apply in the floor/command area, away from
+inputs. C toggles cursor navigation; Enter applies the current tool/selects,
+and Shift+Enter or Shift-click queues GOTO for the selected robot. Typed GOTO
+coordinates and visible command buttons also work on touch and keyboard.
+
+The server owns ticks, positions, battery, queues, lifecycle, and history.
+The tab shows only committed updates; connection loss retains a labelled last
+view. Keep the `?world=...` URL to restore a world after refresh. Reconnecting
+never resumes a world that the server paused. A stopped scheduler requires Pause,
+then Play. The Next Play interval starts at 1000 ms after refresh, independently
+of the server's currently running interval.
+
+`npm run build` emits `apps/web/dist/` alongside existing engine/CLI/API output.
+For a local production-build preview, keep the API running and use
+`npm exec --workspace @rohirrim/web -- vite preview --host 127.0.0.1`.
+Hosting must serve those static assets and route `/api` to the single Nest
+process; this phase does not configure or publish a deployment.
+
+```sh
+npm run test:web       # isolated session/component/presentation checks
+npx playwright install chromium  # once, for browser checks
+npm run test:browser   # builds, then runs Chromium with its own temporary API/DB
+```
+
+Browser checks require free ports 3000 and 5173; stop development servers first.
+They cover real creation/setup/playback/refresh/end, 20 × 20 with 60 robots,
+390 px layout, heartbeats/lease expiry, second-tab cancellation, history scrolling,
+and SQL-triggered scheduler failure/recovery. Screenshots are retained under
+[docs/handoff/phase5/screenshots/](docs/handoff/phase5/screenshots/).
+No assistive-technology certification, cross-browser or performance claim is made.

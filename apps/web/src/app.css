@@ -197,3 +197,5 @@ button,.panel,input { overflow-wrap:anywhere; }
 .cell:hover { outline:2px solid var(--primary); outline-offset:-2px; z-index:1; }
 .pending-cell::after { content:''; position:absolute; inset:0; background:repeating-linear-gradient(135deg,transparent 0 5px,rgb(20 33 61 / 8%) 5px 10px); pointer-events:none; }
 .cell.rejected-cell { outline:2px solid var(--danger); outline-offset:-2px; }
+
+.history-result { display:block; color:var(--text-2); font-size:11px; line-height:16px; margin-top:4px; }

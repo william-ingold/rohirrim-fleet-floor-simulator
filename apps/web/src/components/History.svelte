@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { HistoryEntry } from '../lib/types.js';
-  import { historyName, outcomeText } from '../lib/presentation.js';
+  import { historyName, outcomeText, facingName } from '../lib/presentation.js';
   let { entries, error, cursor, revision, retry, narrow = false, reduced = false, animate = false }: { narrow?: boolean; reduced?: boolean; animate?: boolean; entries: readonly HistoryEntry[]; error: string; cursor: number; revision: number; retry: () => void } = $props();
   let panel = $state<HTMLDivElement>(); let expanded = $state(true);
   $effect(() => { expanded = !narrow; }); let atBottom = $state(true); let filter = $state('');
@@ -26,7 +26,7 @@
       <details class="history-row" class:new-entry={animate && !reduced && entry.revision === revision}>
         <summary><span class="mono muted">r{entry.revision}<br>t{entry.tick}</span><span>{historyName(entry)}</span></summary>
         <div class="history-detail"><time datetime={entry.timestamp}>{new Date(entry.timestamp).toLocaleString()}</time>
-          {#each entry.effects.outcomes ?? [] as outcome}<p>{outcomeText(outcome)}</p>{/each}
+          {#each entry.effects.outcomes ?? [] as outcome}<p>{outcomeText(outcome)}<span class="history-result mono">Result: ({outcome.position.x},{outcome.position.y}) · {facingName(outcome.facing)} · battery {outcome.battery}%<br>{outcome.command.status === 'NONE' ? 'No command' : `${outcome.command.type} ${outcome.command.status.toLowerCase()}`}</span></p>{/each}
         </div>
       </details>
     {:else}<p class="hint">{filter ? 'No matching history.' : 'No history received yet.'}</p>{/each}

@@ -30,7 +30,8 @@
     "test:playback": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand apps/api/test/playback.test.mjs apps/api/test/streaming.test.mjs apps/api/test/stream-writer.test.mjs",
     "dev": "npm run dev --workspace @rohirrim/web",
     "test:web": "npm run test --workspace @rohirrim/web",
-    "test:browser": "npm run test:browser --workspace @rohirrim/web"
+    "test:browser": "npm run test:browser --workspace @rohirrim/web",
+    "pretest:browser": "npm run build"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
