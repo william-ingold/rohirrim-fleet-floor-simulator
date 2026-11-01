@@ -11,14 +11,14 @@
   ],
   "scripts": {
     "pretest": "npm run build",
-    "test": "vitest run && node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test": "vitest run && node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand && npm run test --workspace @rohirrim/web",
     "pretest:persistence": "npm run build --workspace @rohirrim/engine && npm run build --workspace @rohirrim/api",
     "test:persistence": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand apps/api/test/persistence.test.mjs",
     "test:engine": "vitest run packages/engine",
     "pretest:scenario": "npm run build",
     "test:scenario": "vitest run apps/scenario",
-    "typecheck": "tsc --noEmit",
-    "build": "npm run build:scenario && npm run build --workspace @rohirrim/api",
+    "typecheck": "tsc --noEmit && npm run typecheck --workspace @rohirrim/web",
+    "build": "npm run build:scenario && npm run build --workspace @rohirrim/api && npm run build --workspace @rohirrim/web",
     "build:scenario": "npm run build --workspace @rohirrim/engine && npm run build --workspace @rohirrim/scenario",
     "prescenario": "npm run build:scenario",
     "scenario": "node apps/scenario/dist/main.js",
@@ -27,9 +27,14 @@
     "prestart:api": "npm run build --workspace @rohirrim/engine && npm run build --workspace @rohirrim/api",
     "start:api": "node apps/api/dist/main.js",
     "pretest:playback": "npm run build --workspace @rohirrim/engine && npm run build --workspace @rohirrim/api",
-    "test:playback": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand apps/api/test/playback.test.mjs apps/api/test/streaming.test.mjs apps/api/test/stream-writer.test.mjs"
+    "test:playback": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand apps/api/test/playback.test.mjs apps/api/test/streaming.test.mjs apps/api/test/stream-writer.test.mjs",
+    "dev": "npm run dev --workspace @rohirrim/web",
+    "test:web": "npm run test --workspace @rohirrim/web",
+    "test:browser": "npm run test:browser --workspace @rohirrim/web"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@testing-library/user-event": "14.6.8",
     "@types/better-sqlite3": "9.6.0",
     "@types/jest": "30.0.0",
     "@types/node": "26.6.6",

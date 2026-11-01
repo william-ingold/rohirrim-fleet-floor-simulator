@@ -317,3 +317,22 @@ fixtures, internal/exported seams, transport limits, setup and exact frontend
 handoff. Updated README to distinguish operational B5 playback from remaining
 UI work. The frozen contract and pre-existing user documentation/design edits
 were preserved. No pending behavior question or contract amendment was needed.
+
+## Phase 5 — 2026-11-01, frontend transport foundation
+
+User authorized all phase 5 with focused commits. No agents delegated. Preserved
+existing planning/design edits. Applied the Sites skill only to local development;
+the approved Svelte/Vite stack and no-publishing handoff remain in force.
+Official npm metadata verified Svelte 5.57.3, plugin 7.3.1 (Vite 8/Svelte 5 peers),
+svelte-check 4.7.7, Testing Library Svelte 5.4.2, jsdom 30.1.3, user-event 14.6.8,
+and Playwright 1.64.1. Sandbox DNS failed; escalated npm install succeeded and
+reported 20 audit findings (4 low/16 moderate), without forced remediation.
+
+Built typed HTTP/EventSource transport and browser session with revision ordering,
+independent contiguous history catch-up, current lease renewal/cleanup, explicit
+reconnect and uncertain-action reconciliation without mutation retries. Four
+session tests ran red with subscription initialization disabled, then green after
+restoring implementation. Implementation had been drafted before that red run
+because dependencies were not yet available; this is not strict test-first TDD.
+Workbench tests currently fail to load the not-yet-created component; no UI or
+real-backend integration completion is claimed in this commit.
