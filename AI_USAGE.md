@@ -78,3 +78,16 @@ one local workspace link and updated the single lockfile without new external
 dependencies (zero vulnerabilities reported). Strict typecheck, scenario build,
 all 90 tests in four files and git diff --check passed on Node 26.13.0.
 The executable/root invocation and process-error checks remain the next increment.
+
+Second increment: added 15 real process tests. The initial sandbox run was
+blocked by child-process EPERM; it also exposed a malformed Vitest table row in
+the new test code. Corrected the rows to objects and reran outside the sandbox:
+all 15 then failed against the executable stub/missing root script. Implemented
+read/usage errors on stderr with status 1, report-only executable stdout, and
+root scenario/build/test hooks. All 15 passed, including an actual EACCES file
+and the mandatory npm invocation. Refactored duplicate success assertions after
+green. Three additional audit examples (mixed/occupied-target GOTO, battery-report
+setup behavior, numeric contention/re-placement progress) passed on introduction;
+no red claim is made for these. Full suite: 108 tests in five files passed,
+strict typecheck and both builds passed; git diff --check passed. Process tests
+require escalation in this environment. No API/UI or dependency upgrades added.

@@ -5,10 +5,15 @@
   "engines": { "node": "26.13.0" },
   "workspaces": ["packages/*", "apps/*"],
   "scripts": {
+    "pretest": "npm run build",
     "test": "vitest run",
     "test:engine": "vitest run packages/engine",
+    "pretest:scenario": "npm run build",
+    "test:scenario": "vitest run apps/scenario",
     "typecheck": "tsc --noEmit",
-    "build": "npm run build --workspace @rohirrim/engine"
+    "build": "npm run build --workspace @rohirrim/engine && npm run build --workspace @rohirrim/scenario",
+    "prescenario": "npm run build",
+    "scenario": "node apps/scenario/dist/main.js"
   },
   "devDependencies": {
     "@types/node": "26.6.6",

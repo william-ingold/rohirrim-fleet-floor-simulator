@@ -84,4 +84,24 @@ describe('C01–C07: isolated scenario execution through the public engine', () 
     try { expect(() => runScenario('PLACE R1 0,0,NORTH')).toThrow(fault); }
     finally { spy.mockRestore(); }
   });
+
+  it('accepts spaced mixed GOTO batches and occupied in-bounds targets', () => {
+    const result = runScenario('FLOOR 4,1\nPLACE R1 0,0,NORTH\nPLACE R2 3,0,WEST\nQUEUE R1 goto 2 , 0 left GOTO 3 , 0 right\nTICK 3\nREPORT\nTICK 2\nREPORT');
+    expect(result.stdout).toBe('R1 2,0,NORTH\nR2 3,0,WEST\nR1 2,0,NORTH\nR2 3,0,WEST\n');
+    expect(result.world.snapshot.robots[0]?.queue).toEqual([{ type: 'GOTO', target: { x: 3, y: 0 }, consecutiveNoPathTicks: 2 }, { type: 'RIGHT' }]);
+  });
+
+  it('REPORT BATTERY and malformed TICK leave FLOOR replacement available', () => {
+    const result = runScenario('PLACE R1 0,0,EAST\nREPORT BATTERY\nTICK 1 junk\nFLOOR 1,1\nREPORT\nPLACE R2 0,0,SOUTH\nTICK 2\nREPORT');
+    expect(result.stdout).toBe('R1 100\nEMPTY\nR2 0,0,SOUTH\n');
+    expect(result.world.baseline).toMatchObject({ width: 1, height: 1, tick: 0, robots: [{ id: 'R2' }] });
+  });
+
+  it('uses numeric-ID contention and preserves progress/battery across valid re-placement', () => {
+    const contention = runScenario('FLOOR 3,1\nPLACE R10 0,0,EAST\nPLACE R2 2,0,WEST\nQUEUE R10 MOVE\nQUEUE R2 MOVE\nTICK\nREPORT');
+    expect(contention.stdout).toBe('R2 1,0,WEST\nR10 0,0,EAST\n');
+    const result = runScenario('FLOOR 3,1\nPLACE R1 0,0,EAST\nQUEUE R1 MOVE GOTO 2,0 LEFT\nTICK\nOBSTACLE 2,0\nTICK 2\nPLACE R1 2,0,WEST\nREPORT\nPLACE R1 0,0,WEST\nREPORT BATTERY');
+    expect(result.stdout).toBe('R1 1,0,EAST\nR1 99\n');
+    expect(result.world.snapshot.robots[0]).toMatchObject({ position: { x: 0, y: 0 }, facing: 'WEST', battery: 99, queue: [{ type: 'GOTO', target: { x: 2, y: 0 }, consecutiveNoPathTicks: 0 }, { type: 'LEFT' }] });
+  });
 });
