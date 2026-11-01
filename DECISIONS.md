@@ -626,6 +626,27 @@ specification interpretations are recorded above.
 - Package build/export configuration in the confirmed workspace structure; exact DTO types and
   transport limits within the confirmed API/SSE contract.
 
+### D065 — Setup robot removal and immediate facing controls
+
+Support `REMOVE_ROBOT {robotId}` and `SET_ROBOT_FACING {robotId, facing}` only
+during Setting Up, enforced by World and the API as well as the UI. The user
+explicitly selected Setup-only immediate facing changes on 2026-11-01.
+The selected-robot inspector offers North/East/South/West and Delete robot.
+Existing queued Left/Right commands retain their tick-based behavior.
+
+Removal discards the robot and its queue, preserving floor features, other
+robots, and append-only history. Existing smallest-unused-ID allocation applies
+to subsequent placement; a reused ID starts with a fresh battery and queue.
+Unknown robots reject either action. Facing changes preserve position, battery,
+queue, and GOTO progress; selecting the current facing is a no-op. Finish Setup
+captures the resulting configuration. Neither action advances a tick.
+
+Implementation decision: use distinct world actions so a facing edit does not
+invoke re-placement's GOTO-progress reset. Both use the existing atomic
+snapshot/history transaction and committed-update publication. No snapshot/SQL
+format change or CLI directive is required. UI changes follow committed state,
+disable during pending/disconnected states, and clear a deleted selection.
+
 ## Specification ambiguities awaiting resolution
 
 - If module C is selected: historical boundaries around edits between ticks.

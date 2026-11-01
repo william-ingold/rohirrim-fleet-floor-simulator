@@ -30,6 +30,40 @@ async function create(api, dimensions = {}) {
   return (await api.post('/api/worlds').send(dimensions).expect(201)).body;
 }
 function act(api, id, action) { return api.post(`/api/worlds/${id}/actions`).send(action); }
+test('setup robot facing and removal persist and publish only committed changes', async () => {
+  const { api, app, db } = await fixture();
+  const { worldId } = await create(api);
+  await act(api, worldId, { type: 'SET_CHARGER', position: { x: 0, y: 0 }, enabled: true }).expect(200);
+  await act(api, worldId, { type: 'PLACE_ROBOT', position: { x: 0, y: 0 } }).expect(200);
+  await act(api, worldId, { type: 'ENQUEUE_COMMANDS', robotId: 'R1', commands: [{ type: 'MOVE' }] }).expect(200);
+  const events = [];
+  app.get(CommittedUpdates).subscribe(event => events.push(event));
+  const facing = { type: 'SET_ROBOT_FACING', robotId: 'R1', facing: 'WEST' };
+  const changed = (await act(api, worldId, facing).expect(200)).body;
+  expect(changed).toMatchObject({ revision: 5, state: { tick: 0, robots: [{ facing: 'WEST', battery: 100, queue: [{ type: 'MOVE' }] }] } });
+  expect(changed.historyEntries[0].action).toEqual(facing);
+  const noop = (await act(api, worldId, facing).expect(200)).body;
+  expect(noop).toMatchObject({ revision: 5, historyEntries: [] });
+  for (const action of [
+    { ...facing, facing: 'UP' }, { ...facing, robotId: 'R2' }, { ...facing, battery: 10 },
+    { type: 'REMOVE_ROBOT' }, { type: 'REMOVE_ROBOT', robotId: 'R2' },
+  ]) await act(api, worldId, action).expect(400);
+  db.exec("CREATE TRIGGER reject_robot_edit BEFORE INSERT ON world_history BEGIN SELECT RAISE(ABORT, 'write failed'); END;");
+  await act(api, worldId, { type: 'REMOVE_ROBOT', robotId: 'R1' }).expect(500);
+  expect((await api.get(`/api/worlds/${worldId}`)).body).toEqual(noop);
+  expect(events).toHaveLength(1);
+  db.exec('DROP TRIGGER reject_robot_edit');
+  const removed = (await act(api, worldId, { type: 'REMOVE_ROBOT', robotId: 'R1' }).expect(200)).body;
+  expect(removed).toMatchObject({ revision: 6, state: { robots: [], chargers: [{ x: 0, y: 0 }] } });
+  expect(events.at(-1).world.state).toEqual(removed.state);
+  expect((await api.get(`/api/worlds/${worldId}`)).body.state).toEqual(removed.state);
+  expect((await api.get(`/api/worlds/${worldId}/history`)).body.entries).toHaveLength(6);
+  await act(api, worldId, { type: 'PLACE_ROBOT', position: { x: 0, y: 0 } }).expect(200);
+  await act(api, worldId, { type: 'FINISH_SETUP' }).expect(200);
+  const baseline = db.prepare('SELECT t0_json FROM worlds WHERE id = ?').get(worldId);
+  for (const action of [facing, { type: 'REMOVE_ROBOT', robotId: 'R1' }]) await act(api, worldId, action).expect(409);
+  expect(db.prepare('SELECT t0_json FROM worlds WHERE id = ?').get(worldId)).toEqual(baseline);
+});
 async function prepared(api) {
   const { worldId } = await create(api, { width: 2, height: 1 });
   await act(api, worldId, { type: 'PLACE_ROBOT', position: { x: 0, y: 0 } }).expect(200);

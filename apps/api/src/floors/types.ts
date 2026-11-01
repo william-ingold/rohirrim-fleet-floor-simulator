@@ -6,7 +6,8 @@ export type WorldAction =
   | { readonly type: 'PLACE_ROBOT'; readonly position: Position; readonly robotId?: string; readonly facing?: Facing }
   | { readonly type: 'SET_OBSTACLE' | 'SET_CHARGER'; readonly position: Position; readonly enabled: boolean }
   | { readonly type: 'ENQUEUE_COMMANDS'; readonly robotId: string; readonly commands: readonly CommandInput[] }
-  | { readonly type: 'CLEAR_QUEUE'; readonly robotId: string }
+  | { readonly type: 'CLEAR_QUEUE' | 'REMOVE_ROBOT'; readonly robotId: string }
+  | { readonly type: 'SET_ROBOT_FACING'; readonly robotId: string; readonly facing: Facing }
   | { readonly type: 'PLAY'; readonly tickIntervalMs: number };
 export type PlaybackAction = { readonly type: 'AUTOMATIC_TICK' } | { readonly type: 'PAUSE'; readonly reason: 'NO_CLIENTS' };
 export type AuditAction = WorldAction | { readonly type: 'CREATE'; readonly width: number; readonly height: number }

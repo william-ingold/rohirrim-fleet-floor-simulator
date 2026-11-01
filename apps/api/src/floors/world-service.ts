@@ -96,6 +96,8 @@ export class WorldService {
         case 'SET_CHARGER': next = world.setCharger(action.position, action.enabled); break;
         case 'ENQUEUE_COMMANDS': next = world.enqueue(action.robotId, action.commands); break;
         case 'CLEAR_QUEUE': next = world.clearQueue(action.robotId); break;
+        case 'REMOVE_ROBOT': next = world.removeRobot(action.robotId); break;
+        case 'SET_ROBOT_FACING': next = world.setRobotFacing(action.robotId, action.facing); break;
         case 'PAUSE': next = world.pause(); break;
         case 'END': next = world.end(); break;
         case 'STEP': {

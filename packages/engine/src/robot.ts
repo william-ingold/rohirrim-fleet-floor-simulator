@@ -28,6 +28,7 @@ export class Robot {
     return new Robot({ ...this.#state, queue: [...this.#state.queue, ...commands] });
   }
   clearQueue(): Robot { return new Robot({ ...this.#state, queue: [] }); }
+  face(facing: Facing): Robot { return new Robot({ ...this.#state, facing }); }
   relocate(position: Position, facing: Facing): Robot {
     const queue = this.#state.queue.map((c, i) => i === 0 && c.type === 'GOTO' ? { ...c, consecutiveNoPathTicks: 0 } : c);
     return new Robot({ ...this.#state, position, facing, queue });

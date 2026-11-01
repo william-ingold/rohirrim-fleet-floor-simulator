@@ -69,6 +69,16 @@ export class World {
     if (cells.some(p => samePosition(p, position)) === enabled) return this;
     return this.replace({ [name]: enabled ? [...cells, position] : cells.filter(p => !samePosition(p, position)) });
   }
+  removeRobot(id: string): World {
+    guard(this.#state.lifecycle, ['SETTING_UP']);
+    const robot = this.robot(id);
+    return this.replace({ robots: this.#state.robots.filter(r => r.id !== robot.snapshot.id) });
+  }
+  setRobotFacing(id: string, facing: Facing): World {
+    guard(this.#state.lifecycle, ['SETTING_UP']);
+    const robot = this.robot(id);
+    return robot.snapshot.facing === facing ? this : this.replaceRobot(robot.face(facing));
+  }
   setObstacle(position: Position, enabled: boolean): World { return this.feature('obstacles', position, enabled); }
   setCharger(position: Position, enabled: boolean): World { return this.feature('chargers', position, enabled); }
   private robot(id: string): Robot {

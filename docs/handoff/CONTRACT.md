@@ -67,6 +67,8 @@ Proposed tags/payloads:
 | FINISH_SETUP | none | SETTING_UP |
 | RESIZE | width, height | SETTING_UP; preserve/reject rule |
 | PLACE_ROBOT | position, optional robotId and facing | SETTING_UP/PAUSED; UI omits ID and defaults NORTH; explicit re-placement supplies facing |
+| REMOVE_ROBOT | robotId | SETTING_UP only (D065); removes robot and queue, retains history/features |
+| SET_ROBOT_FACING | robotId, facing | SETTING_UP only (D065); immediate, preserves other robot state; same facing is a no-op |
 | SET_OBSTACLE | position, enabled | SETTING_UP/PAUSED |
 | SET_CHARGER | position, enabled | SETTING_UP/PAUSED |
 | ENQUEUE_COMMANDS | robotId, commands[] | SETTING_UP/PAUSED; nonempty atomic batch |

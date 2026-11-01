@@ -4,6 +4,35 @@ import { World, DomainError } from '../src/index.js';
 const p = (x: number, y: number) => ({ x, y });
 
 describe('B1 construction, edits and lifecycle', () => {
+  it('sets facing only in setup, preserving all other state and validating atomically', () => {
+    const original = World.create(2, 2).placeRobot(p(0, 0)).snapshot;
+    const setup = World.restore({ ...original, robots: [{ ...original.robots[0], battery: 42,
+      queue: [{ type: 'GOTO', target: p(1, 1), consecutiveNoPathTicks: 2 }, { type: 'MOVE' }] }] });
+    const changed = setup.setRobotFacing('r01', 'WEST');
+    expect(changed.snapshot).toEqual({ ...setup.snapshot, robots: [{ ...setup.snapshot.robots[0], facing: 'WEST' }] });
+    expect(setup.snapshot.robots[0]?.facing).toBe('NORTH');
+    expect(changed.setRobotFacing('R1', 'WEST')).toBe(changed);
+    expect(changed.finishSetup().baseline?.robots[0]?.facing).toBe('WEST');
+    expect(() => setup.setRobotFacing('R2', 'EAST')).toThrow('Unknown robot');
+    expect(() => setup.setRobotFacing('R1', 'INVALID' as never)).toThrow(DomainError);
+    for (const world of [setup.finishSetup(), setup.finishSetup().play(), setup.finishSetup().end()]) {
+      expect(() => world.setRobotFacing('R1', 'EAST')).toThrow(expect.objectContaining({ code: 'INVALID_LIFECYCLE' }));
+    }
+  });
+  it('deletes a setup robot and its queue, preserving features and other robots', () => {
+    const setup = World.create(2, 2).setCharger(p(0, 0), true).placeRobot(p(0, 0))
+      .enqueue('R1', [{ type: 'MOVE' }]).placeRobot(p(1, 0));
+    const removed = setup.removeRobot('r01');
+    expect(removed.snapshot.robots.map(r => r.id)).toEqual(['R2']);
+    expect(removed.snapshot.chargers).toEqual([p(0, 0)]);
+    expect(setup.snapshot.robots).toHaveLength(2);
+    expect(removed.placeRobot(p(0, 0)).snapshot.robots[0]).toMatchObject({ id: 'R1', battery: 100, queue: [] });
+    expect(removed.finishSetup().baseline?.robots.map(r => r.id)).toEqual(['R2']);
+    expect(() => removed.removeRobot('R1')).toThrow('Unknown robot');
+    for (const world of [setup.finishSetup(), setup.finishSetup().play(), setup.finishSetup().end()]) {
+      expect(() => world.removeRobot('R1')).toThrow(expect.objectContaining({ code: 'INVALID_LIFECYCLE' }));
+    }
+  });
   it('E01: validates dimensions, placement, features and southwest coordinates atomically', () => {
     for (const width of [0, 21, 1.1, NaN]) expect(() => World.create(width, 1)).toThrow(DomainError);
     for (const size of [1, 20]) expect(World.create(size, size).snapshot.width).toBe(size);

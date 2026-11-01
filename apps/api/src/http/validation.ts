@@ -63,8 +63,10 @@ export function parseAction(value: unknown): WorldAction {
     case 'ENQUEUE_COMMANDS':
       fields(input, ['type', 'robotId', 'commands']); check(Array.isArray(input.commands) && input.commands.length > 0, 'Expected nonempty commands');
       return { type: input.type, robotId: robotId(input.robotId), commands: input.commands.map(command) };
-    case 'CLEAR_QUEUE':
+    case 'CLEAR_QUEUE': case 'REMOVE_ROBOT':
       fields(input, ['type', 'robotId']); return { type: input.type, robotId: robotId(input.robotId) };
+    case 'SET_ROBOT_FACING':
+      fields(input, ['type', 'robotId', 'facing']); return { type: input.type, robotId: robotId(input.robotId), facing: facing(input.facing) };
     case 'PLAY': {
       fields(input, ['type', 'tickIntervalMs']); const interval = integer(input.tickIntervalMs);
       check(interval >= 100 && interval <= 5000, 'tickIntervalMs must be from 100 through 5000');
