@@ -14,8 +14,9 @@ playback scheduler, SSE, and presence. Frontend includes rendering, browser-side
 interaction, HTTP/SSE integration, heartbeat renewal, accessibility, and motion.
 The browser never becomes a second simulation engine.
 
-The shared boundary is JSON snapshots/actions/outcomes. Freeze reviewed names
-and fixtures in CONTRACT.md before backend and frontend integrate. Frontend
+The shared boundary is JSON snapshots/actions/outcomes. CONTRACT.md is approved
+and frozen for the documented boundary (D060–D062); create matching fixtures during
+authorized implementation before backend and frontend integrate. Frontend
 wireframes and component work can use fixtures while backend is built, but this
 does not authorize spawning agents or changing the API independently.
 

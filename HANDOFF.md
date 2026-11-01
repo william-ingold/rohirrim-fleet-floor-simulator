@@ -19,7 +19,8 @@ read [the document usage guide](docs/handoff/USAGE_GUIDE.md).
 1. Read [DECISIONS.md](DECISIONS.md) for confirmed behavior and rationale.
 2. Read [ARCHITECTURE.md](ARCHITECTURE.md) for ownership, contracts, and discussion.
 3. Read [the implementation plan](docs/handoff/IMPLEMENTATION_PLAN.md).
-4. Resolve [the review items](docs/handoff/REVIEW_ITEMS.md) before dependent work.
+4. Read [the resolved review items](docs/handoff/REVIEW_ITEMS.md); R1–R5 are
+   agreed and the documented boundary contract is frozen (D050–D062).
 5. Use [the master coding prompt](docs/handoff/prompts/IMPLEMENT.md), selecting a
    phase rather than asking an agent to build everything in one unreviewed pass.
 
@@ -36,9 +37,9 @@ stack handoff/layout are historical proposals; use the confirmed decisions here.
 | [Implementation plan](docs/handoff/IMPLEMENTATION_PLAN.md) | Scope, dependencies, TDD slices, acceptance gates, five-hour planning target |
 | [Backend handoff](docs/handoff/BACKEND.md) | Pure engine, scenario runner, Nest API, SQLite, scheduler, SSE, presence |
 | [Frontend handoff](docs/handoff/FRONTEND.md) | Svelte components, interaction states, authoritative-state rendering, accessibility |
-| [Boundary contract](docs/handoff/CONTRACT.md) | Proposed exact DTO/SQL vocabulary within approved semantics; review status is explicit |
+| [Boundary contract](docs/handoff/CONTRACT.md) | Approved and frozen DTO/SQL boundary vocabulary; implementation details are explicit |
 | [Acceptance matrix](docs/handoff/ACCEPTANCE.md) | Requirement-to-test traceability and Given/When/Then examples |
-| [Review items](docs/handoff/REVIEW_ITEMS.md) | Genuine remaining contract/scope questions, without reopening settled decisions |
+| [Review items](docs/handoff/REVIEW_ITEMS.md) | R1–R5 questions and agreed resolutions, without reopening settled decisions |
 | [Master implementation prompt](docs/handoff/prompts/IMPLEMENT.md) | Instructions for a later coding agent |
 | [Backend prompt](docs/handoff/prompts/BACKEND.md) | Bounded backend phase prompt and completion evidence |
 | [Frontend prompt](docs/handoff/prompts/FRONTEND.md) | Contract-based frontend prompt and completion evidence |
@@ -100,6 +101,6 @@ architecture. Keep questions/pushbacks and rationale in the discussion record.
 No application scaffold, package installation, migration, or executable test suite
 was created for this handoff. Reference text, plans, and prompts are documents.
 The visual direction is confirmed as a bright, approachable educational simulation
-workbench. Exact palette, motion timings, and design-tool output remain proposals
-until reviewed; the UI/UX prompt requests those deliverables rather than claiming
-they already exist.
+workbench. The [visual specification](docs/handoff/design/UI_UX_SPEC.md) and its
+[frames](docs/handoff/design/workbench-design.html) are approved (D063). Contrast is
+calculated; accessibility and performance are unverified until implemented.

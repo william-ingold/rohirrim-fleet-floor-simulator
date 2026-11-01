@@ -124,6 +124,11 @@ an in-progress tick and prevent stale callbacks from executing later. A stale
 automatic callback must not act like an allowed manual Step. Tag/check playback
 generations if useful so an old callback cannot tick a later Play session.
 
+Expose the scheduler's current interval as `runningTickIntervalMs` on WorldResponse,
+`world.snapshot`, and `world.updated`, null when no scheduler is running (D061). Do
+not persist it. After `scheduler.error`, ordinary PAUSE then PLAY is the recovery
+path, and a committed Pause or End clears the stopped status (D062).
+
 Browser leases renew every 5 seconds and expire after 15 seconds. Presence is
 transient transport metadata, not a world change/history flood. Keep disconnected
 leases' remaining grace, but do not accept late renewals for closed/superseded

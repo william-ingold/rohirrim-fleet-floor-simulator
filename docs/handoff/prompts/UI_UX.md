@@ -56,8 +56,10 @@ where useful; no multi-page onboarding flow is needed.
 - Paused: edits, queue changes, Play, one-tick Step, End; dimensions locked.
 - Playing: inspection, Pause, End; editing disabled with an understandable reason.
 - Ended: final floor/queues/history inspectable and read-only, no reset/resume.
-- Adjustable playback speed UI details remain subject to CONTRACT/REVIEW_ITEMS;
-  propose a control without silently adding live speed-change domain behavior.
+- Playback speed follows D051/D052: per-tab selection, initially 1000ms and reset
+  on refresh, whole milliseconds from 100 through 5000 inclusive, selectable in
+  Setting Up/Paused and passed on PLAY. Propose the control's visual design
+  within those rules; repeated PLAY keeps the running interval (D055).
 - History shows committed placements, feature edits, queue changes, lifecycle,
   and tick results. Tick entries may expand to robot outcomes. No timeline/fork
   scrubber is committed. Preserve chronological reading and user scroll position.

@@ -589,6 +589,212 @@ reviewed. Do not label unproduced mockups or speculative accessibility as verifi
 Reason: user answered the design-direction and target-tool questions. See
 docs/handoff/prompts/UI_UX.md and the frontend handoff.
 
+### D050 — Cancel returns a 200 cancellation receipt
+
+After the approved atomic draft deletion commits, CANCEL returns HTTP 200 with
+`{worldId, cancelled: true}`. This is an explicit exception to the ordinary
+world-state success envelope: the deleted draft is not returned as current state.
+Return to creation only after commit; a subsequent GET returns 404. Failed
+disposal follows D044 and does not return a success receipt.
+
+Reason: on 2026-11-01, the user selected the proposed 200 receipt after comparing
+it with 204 No Content. This resolves R1's response question without changing
+the confirmed disposal behavior or adding a retained Cancelled state.
+
+### D051 — Playback speed selection and scheduler ownership
+
+Each browser tab starts with a local selection of 1000ms per tick. Allow the
+selection to change during Setting Up or Paused and pass it as `tickIntervalMs`
+on PLAY. The server scheduler holds the running interval outside durable
+simulation state. Refresh resets that tab's selection to 1000ms; different tabs
+may have different selections. Existing server-restart recovery remains D023.
+
+Reason: on 2026-11-01, the user agreed to the proposed ownership, default, and
+refresh-reset behavior after discussion of independent tab selections and
+simpler persistence. Range and numeric validation were subsequently confirmed
+in D052. Repeated-PLAY behavior was subsequently confirmed in D055.
+
+### D052 — Playback interval range and validation
+
+Accept `tickIntervalMs` only as a whole-number millisecond value from 100 through
+5000 inclusive, enforced by both UI and API. Reject values outside that range
+or fractional values. This permits selections from ten ticks per second to one
+tick every five seconds; it is a scheduler interval, not a measured throughput
+guarantee. The default remains 1000ms under D051.
+
+Reason: on 2026-11-01, the user approved this range and validation after comparing
+useful fast/slow playback with the flexibility of broader limits. Together with
+D051, this resolves R2 without adding timing to durable simulation state.
+
+### D053 — One API process; scaling and high availability outside scope
+
+Support one running Nest API process, owning the per-world action serializer,
+schedulers, SSE publisher/subscriptions, and presence registry. Multiple browser
+clients remain supported. Do not add API replicas, distributed locks, or a
+coordination broker for this scope. Existing SQLite durability and server-restart
+recovery requirements remain in force.
+
+Reason: on 2026-11-01, the user explicitly stated that scaling and availability
+are not needed and chose one process. This resolves R3; it does not remove
+confirmed persistence, failure handling, or restart recovery behavior.
+
+### D054 — Reject unsupported snapshot versions without changing saved data
+
+When loading an unsupported saved snapshot version, surface a clear
+unsupported-version error and leave the saved data untouched. Do not silently
+reset worlds or attempt automatic JSON format conversion. No world-format
+change is planned. If one is introduced later, support for upgrading existing
+JSON requires an explicit migration. Confirmed versioned SQL schema migrations
+remain in force.
+
+Reason: on 2026-11-01, the user agreed to rejection rather than automatic
+conversion and clarified that changing the world format is not planned. This
+resolves R4 without adding speculative format-migration work or weakening saved
+state validation (D033). Exact error vocabulary was subsequently confirmed in D059.
+
+### D055 — Repeated lifecycle actions return unchanged state
+
+PLAY while Playing, PAUSE while Paused, and END while Ended return HTTP 200
+with the current committed state, unchanged revision, and empty new
+historyEntries. They create no duplicate scheduler loop or history. Repeated
+PLAY leaves the running interval unchanged. Existing lifecycle restrictions
+otherwise remain in force, including rejecting edits to Ended worlds.
+
+Reason: the user approved these three rules after comparison with 409 responses
+for redundant requests. They tolerate duplicate clicks and actions already
+performed by another tab. This resolves the repeated-action part of R5 only;
+it does not authorize blind retries of STEP or ENQUEUE or change their effects.
+
+### D056 — Creation starts at revision 1 with an atomic CREATE record
+
+Create a Setting Up world at revision 1 and tick 0. Commit its initial snapshot
+and CREATE history entry together in one transaction. Keep t0 null until Finish
+Setup captures the baseline under the existing lifecycle rules. A history query
+after revision 0 can therefore retrieve the complete retained history beginning
+with creation.
+
+Reason: the user agreed to auditing creation as the first change after comparing
+it with revision 0 without a creation record. This resolves the initial
+revision/history portion of R5; final boundary approval is recorded in D060.
+
+### D057 — Close cancelled-draft streams and confirm deletion through GET
+
+After draft deletion commits, close that world's SSE streams and invalidate its
+subscriptions. On stream loss, a browser checks the world through GET. A 404
+stops reconnection and returns to creation with "This draft is no longer
+available." Network or server failures show a connection error without assuming
+deletion. The cancelling tab still follows the committed 200 receipt under D050.
+
+Reason: the user agreed to using the existing GET/404 contract after comparison
+with a dedicated cancellation event, which would still need a missed-delivery
+fallback. This resolves draft-stream shutdown under R5 without adding a new
+cancellation event or changing the approved disposal transaction.
+
+### D058 — Surface scheduler failure as operational status
+
+When an automatic tick fails, stop scheduling under D022 and notify connected
+tabs through SSE with a readable error and a status indicating that scheduling
+stopped. Reconnecting tabs also receive the current operational status. The UI
+shows "Playback stopped due to an error" while preserving the last committed
+world lifecycle, revision, and history. Do not claim a Paused transition that
+has not committed; operational status is separate from saved simulation state.
+
+Reason: the user approved this approach after comparison with HTTP errors
+alone, which would not directly notify browsers of automatic tick failures.
+This resolves the failure-notification approach under R5. Exact event/payload
+vocabulary was subsequently confirmed in D059; D022's reconciliation and
+recovery requirements are unchanged.
+
+### D059 — Scheduler error event and failure codes
+
+Use SSE event `scheduler.error` with payload `{worldId, error: {code, message}}`
+and no event ID. It reports an operational failure without advancing revision.
+Use `PERSISTENCE_UNAVAILABLE` for temporary database failures and
+`INTERNAL_ERROR` for unexpected internal failures. Unsupported saved snapshot
+formats return HTTP 500 with `UNSUPPORTED_SNAPSHOT_VERSION`, leaving data
+untouched under D054. D058's current-failure delivery on reconnect applies.
+
+Reason: the user approved these names and shapes after comparison of a dedicated
+unsupported-version code with a generic internal error and reuse of the existing
+error shape. This resolves the operational event and these error identifiers
+under R5; remaining DTO/SQL vocabulary was subsequently approved in D060.
+
+### D060 — Approve boundary vocabulary and table design; close R5
+
+Approve the documented snapshot fields and WorldResponse envelope, including
+`snapshotVersion` as envelope metadata; world-action names/payloads and six API
+routes; creation HTTP 201 and ordinary reads/actions HTTP 200; history cursor
+and response fields; and presence response fields in docs/handoff/CONTRACT.md.
+Approve `INVALID_REQUEST` (400), `WORLD_NOT_FOUND` (404), `INVALID_LIFECYCLE`
+(409), and `INVALID_PLACEMENT` (422), alongside the D059 failure codes.
+
+Approve the documented worlds, world_history, and schema_migrations table
+design and columns, JSON checks, foreign key, and unique world/revision history
+key. Preserve the confirmed single current-world JSON snapshot, separate t0,
+atomic writes, and draft-disposal exception to append-only history.
+
+Reason: the user approved the remaining DTO/SQL vocabulary and table design
+after review of the shared-contract benefit and the existing JSON storage
+trade-offs. Together with D055–D059, this resolves R5 and freezes the documented
+boundary. R1–R5 are all resolved. Exact SQL syntax, database pragmas, dependency
+versions, and bounded transport defaults remain implementation details within
+confirmed behavior. Undocumented input limits or behavior changes are not
+authorized. Planning-only scope (D048) remains in force.
+
+### D061 — Expose the running tick interval as transport metadata
+
+Add `runningTickIntervalMs` (integer, or null when no scheduler is running for
+the world) to WorldResponse, `world.snapshot`, and `world.updated`, outside
+WorldSnapshot. It is not persisted and adds no SQL column. The tab's local
+selection stays per D051/D052 and is shown separately as the next Play interval.
+Repeated PLAY leaves the value unchanged (D055). The `scheduler.error` payload stays as
+approved in D059; a client treats that event as null. Reconnecting tabs read
+the current value from their initial snapshot.
+
+Reason: on 2026-11-01, the user chose to show the running interval during design
+review and agreed to this proposal. It amends D051's display limits and the
+frozen boundary; ownership, range, and simulation behavior do not change.
+
+### D062 — Pause is the recovery path after scheduler failure
+
+After `scheduler.error`, the committed lifecycle remains Playing and PLAY stays
+an unchanged-state no-op (D055), so the UI offers Pause and End, not Play. PAUSE
+follows its existing legal transition and commits normally. If persistence is
+still unavailable, it returns the error and nothing changes (D022). A committed
+Pause or End clears the stopped operational status. After Pause, ordinary PLAY
+starts scheduling again. No action, route, or error code is added.
+
+Reason: on 2026-11-01, the user agreed after the design review found that no
+recovery step had been named for D058. D022's reconciliation requirements remain.
+
+### D063 — Approve the bright workbench visual specification
+
+Approve docs/handoff/design/UI_UX_SPEC.md and workbench-design.html as the
+visual specification: Bright Daylight palette (Quiet Daylight not selected),
+system fonts, lifecycle track, robot marker, three-column layout, cell sizes,
+motion tiers and timings, speed control, messages, arrow-key queueing with a `C`
+floor cursor, grid lines below 3:1, no misplaced-robot fix beyond Cancel, and a
+Create another world link on Ended. History receives its own scrolling panel
+with at least 320px of height. No mouse-drag command input is added.
+
+Reason: on 2026-11-01, the user reviewed and accepted these choices, resolving
+D049's open proposals. Accessibility and performance remain unverified until
+tested in the implemented UI. Planning-only scope (D048) remains in force.
+
+### D064 — Use the approved design materials in phase 5 frontend sessions
+
+docs/handoff/prompts/UI_UX.md has served its purpose; reuse it only if the design
+is redone. Every phase 5 slice uses UI_UX_SPEC.md as its main visual source and
+workbench-design.html as its visual reference, focusing on the sections and frames
+relevant to that slice. The setup and grid slice turns the spec's token block into
+CSS variables, which later slices reuse rather than copying values. The user
+compares each built slice against the frames. Backend sessions do not need the
+design files; B5 receives D061/D062 through CONTRACT, BACKEND, and ACCEPTANCE.
+
+Reason: on 2026-11-01, the user asked when and where the design materials and
+prompt are used, then asked to record the answer. This sets how the materials are
+used; it does not authorize implementation (D048 still applies to this chat).
+
 ## Discussion provenance
 
 [ARCHITECTURE.md](ARCHITECTURE.md) contains a retrospective discussion record of

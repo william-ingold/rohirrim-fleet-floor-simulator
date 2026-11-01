@@ -2,7 +2,8 @@
 
 Status: test design. No executable tests or passing results are claimed.
 IDs provide traceability from behavior to backend/frontend work. Confirmed rules
-are in DECISIONS.md; wire details in CONTRACT.md are draft until reviewed.
+are in DECISIONS.md; the documented boundary in CONTRACT.md is approved and frozen
+(D050–D062).
 
 ## Traceability matrix
 
@@ -55,6 +56,8 @@ are in DECISIONS.md; wire details in CONTRACT.md are draft until reviewed.
 | S06 | Refresh within grace avoids forced pause; reconnect after pause/restart needs Play | Integration/UI |
 | S07 | Closed/superseded/expired IDs cannot revive leases; listeners/timers/sockets clean up | Presence/SSE |
 | S08 | Delivery failure after commit does not undo state; resync recovers missing latest snapshot/history | Integration/UI |
+| S09 | runningTickIntervalMs is set after PLAY, unchanged by repeated PLAY, null after Pause/End/auto-pause/restart, and never persisted or revision-creating | API/SSE |
+| S10 | After scheduler.error, PLAY is a no-op; PAUSE commits when persistence is back or errors with no change; PLAY then schedules again | Integration |
 | U01 | UI default 10 x 8; row mapping preserves southwest origin and cardinal facing | UI |
 | U02 | Place/select; Up MOVE/Left LEFT/Right RIGHT scoped away from inputs; equivalent buttons | UI |
 | U03 | Queues/battery for every robot; append/Clear active GOTO; target input/shift-click | UI |
@@ -62,6 +65,7 @@ are in DECISIONS.md; wire details in CONTRACT.md are draft until reviewed.
 | U05 | HTTP/SSE duplicate/out-of-order snapshots cannot regress state; history cursor remains independent | UI |
 | U06 | Presence registration/reconnect ID/heartbeat teardown; no client-owned ticks | UI |
 | U07 | Accessible focus/labels, color-independent status, reduced motion; dense floor inspection | UI/manual |
+| U08 | Running interval shows separately from next Play interval, including after refresh; scheduler failure offers Pause/End and no Play; history scrolls in its own panel without forced scroll | UI |
 
 ## Given/When/Then examples
 

@@ -1,7 +1,8 @@
 # Frontend implementation handoff
 
 Audience: coding agent implementing authorized UI phases. Read HANDOFF.md,
-DECISIONS.md, CONTRACT.md, ACCEPTANCE.md, and the reviewed output of UI_UX.md.
+DECISIONS.md, CONTRACT.md, ACCEPTANCE.md, and the approved visual specification
+(docs/handoff/design/UI_UX_SPEC.md and workbench-design.html, D063).
 No application code is authorized in the current planning chat.
 
 ## Product and design direction
@@ -12,8 +13,8 @@ coordinate labels, clear robot facing, and explanatory outcomes over decoration.
 Svelte + Vite, TypeScript, plain/component CSS. No React/Next/SvelteKit, UI-kit
 dependency, canvas game engine, or generated marketing site by default.
 
-Palette/motion proposals from the design tool are not domain decisions. Review
-them before coding. Use CSS variables for approved tokens, accessible contrast,
+Approved visual choices (D063) are not domain decisions and cannot override
+them. Use CSS variables for approved tokens, accessible contrast,
 icons/labels as well as color, and reduced-motion behavior. No generated raster
 artwork is required to understand the simulator.
 
@@ -23,7 +24,7 @@ artwork is required to understand the simulator.
 | --- | --- |
 | WorldSetup | Dimensions/default 10 x 8, draft editing context, Finish Setup, Cancel |
 | FloorGrid | Cell coordinates/features, robot identity/facing, selection/target intents |
-| PlaybackControls | Lifecycle, tick, Play/Pause/Step/End, reviewed speed control |
+| PlaybackControls | Lifecycle, tick, Play/Pause/Step/End, next Play interval, server-reported running interval (D061) |
 | RobotInspector | Selected robot, battery, ordered queue, command append and Clear |
 | EditToolbar | Explicit mutually exclusive placement/obstacle/charger tools |
 | RobotList | Every robot's pending queue/battery, with selected-row navigation |
@@ -59,6 +60,8 @@ domain engine in the browser to predict authoritative results.
   clip existing contents. Finish Setup establishes t0; do not relabel it Play.
 - Play requests server scheduling; Pause/End wait for an in-progress tick to
   complete. Show pending controls without pretending a transition committed.
+- After scheduler.error, offer Pause and End, not Play (D062). Keep showing the
+  committed lifecycle until a Pause commits.
 - Step advances one tick and remains Paused. Ended remains inspectable and
   read-only. Cancel deletes only unfinished setup and navigates after success.
 

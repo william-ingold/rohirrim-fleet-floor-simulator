@@ -932,6 +932,11 @@ Retrospective paraphrases of this chat, not verbatim quotations. Record future
 questions and pushbacks here alongside their resolution; keep unresolved points
 explicit rather than turning recommendations into approvals.
 
+Historical open/review statuses below describe the point in the discussion.
+Current status: R1–R5 are resolved in D050–D060, D061/D062 amend the boundary,
+D063 approves the visual specification, and CONTRACT.md is approved and frozen
+for the documented boundary. Planning-only scope remains in force.
+
 - Planning versus coding: user clarified that this chat will design implementation
   and handoff documents/prompts, not implement. Separate backend/frontend work,
   use fitting TDD/DDD/spec/BDD practices, and prepare an AI UI/UX design prompt.
@@ -944,6 +949,81 @@ explicit rather than turning recommendations into approvals.
   exposed cancellation-response, speed, deployment-process, and snapshot-version
   details. Keep these explicit in docs/handoff/REVIEW_ITEMS.md. Exact DTO/SQL
   names in CONTRACT.md remain a review draft, not new user-approved behavior.
+- R1 cancellation response (2026-11-01): compared a 200 receipt identifying the
+  discarded world with 204 No Content. User chose 200; record
+  `{worldId, cancelled: true}` after commit as D050. Existing atomic disposal,
+  commit-before-navigation, and no-retention decisions remain in force. No
+  additional pushback was expressed in this exchange.
+- R2 playback speed (2026-11-01): user agreed to per-tab selection with a 1000ms
+  default, selection during Setting Up/Paused, `tickIntervalMs` passed on PLAY,
+  and scheduler ownership outside durable state. Explained that tabs may select
+  different speeds and refresh resets selection to 1000ms. Record as D051.
+  User subsequently approved whole-number milliseconds from 100 through 5000
+  inclusive, enforced in UI and API (D052), after comparison with broader limits
+  and their harder-to-follow playback or longer waits. R2 is resolved. No
+  additional pushback was expressed.
+
+- R3 deployment boundary (2026-11-01): user stated, "We don't need scaling or
+  availability," and chose one API process. Record as D053, with one owner for
+  serialization, scheduling, SSE, and presence. This narrows deployment scope;
+  confirmed durability, failure handling, and restart recovery remain required.
+
+- R4 snapshot versions (2026-11-01): user agreed to rejecting unsupported saved
+  versions without altering data and clarified, "we don't plan on changing the
+  world format." Record as D054. Avoid speculative automatic JSON migration
+  work; existing SQL migration and validation requirements remain in force.
+
+- R5 repeated lifecycle actions: user agreed that PLAY while Playing, PAUSE
+  while Paused, and END while Ended return unchanged state with HTTP 200 and
+  no new revision/history (D055). Repeated PLAY keeps the running interval.
+  Compared tolerance of duplicate clicks/another tab's action with 409 errors
+  for redundant requests. STEP/ENQUEUE retry rules remain unchanged. No
+  additional pushback was expressed; remaining R5 proposals are open.
+
+- R5 creation revision/history: user agreed to revision 1, tick 0, and an
+  atomic CREATE history entry, with t0 null until Finish Setup (D056). Compared
+  a complete audit beginning at creation with revision 0 without a creation
+  entry. A cursor after revision 0 retrieves history from creation. No
+  additional pushback was expressed; remaining R5 proposals are open.
+
+- R5 cancelled-draft streams: user agreed to closing streams and invalidating
+  subscriptions after deletion commits, with other tabs confirming deletion by
+  GET/404 before returning to creation (D057). Network/server errors do not
+  imply deletion. Compared this use of existing routes with a dedicated
+  cancellation event requiring a missed-delivery fallback. No additional
+  pushback was expressed; remaining R5 proposals are open.
+
+- R5 automatic tick failure notification: user approved SSE operational status
+  indicating scheduling stopped, with a readable error and current status sent
+  on reconnect (D058). UI preserves the committed lifecycle/revision/history
+  and shows "Playback stopped due to an error." Compared direct notification
+  with HTTP errors alone, which would not directly surface automatic failures.
+  No additional pushback was expressed; exact contract vocabulary remains open.
+
+- R5 operational event/error names: user approved `scheduler.error` with
+  `{worldId, error: {code, message}}` and no event ID, plus
+  `PERSISTENCE_UNAVAILABLE`, `INTERNAL_ERROR`, and HTTP 500 with
+  `UNSUPPORTED_SNAPSHOT_VERSION` for unsupported saved formats (D059). Compared
+  the dedicated format-error code with a generic internal error and explained
+  reuse of the existing error shape. No additional pushback was expressed;
+  remaining DTO/SQL vocabulary is open.
+
+- R5 final boundary approval: user approved the remaining snapshot/envelope,
+  action/route, history/presence, status/error, and SQL table vocabulary (D060).
+  Reviewed the benefit of a shared backend/frontend contract and the existing
+  JSON storage trade-offs. R1–R5 are resolved and the documented contract is
+  frozen. SQL syntax/pragmas, versions, and bounded transport defaults remain
+  implementation details within confirmed behavior. No additional pushback
+  was expressed; planning-only scope remains in force.
+
+- Design review: the design pass found no named recovery after `scheduler.error`,
+  because PLAY is a no-op while the lifecycle stays Playing. User agreed Pause
+  is the recovery path (D062). The assistant recommended leaving the running
+  interval hidden; user instead chose to show it and agreed to a transport field
+  (D061). User raised mouse dragging as an alternative to arrow keys and left the
+  choice open; arrow keys were kept because dragging implies path drawing.
+  User approved the visual specification and asked for ample or scrollable
+  history space (D063).
 
 - Testing roles: user asked whether Next.js/Jest were backend tools and
   Svelte/Vitest frontend tools. Distinguished frameworks from runners and Next.js

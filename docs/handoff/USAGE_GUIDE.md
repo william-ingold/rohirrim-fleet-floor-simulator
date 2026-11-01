@@ -12,8 +12,8 @@ only; coding prompts are for a later session where implementation is requested.
 | [DECISIONS.md](../../DECISIONS.md) | Confirmed behavior, assumptions, and reasoning | Consult before choosing or changing behavior |
 | [ARCHITECTURE.md](../../ARCHITECTURE.md) | Ownership, boundaries, rationale, discussion | Read relevant sections for the current work |
 | [Original brief](reference/BRIEF.md) | Source requirements | Check requirements/examples; distinguish them from confirmed interpretations |
-| [REVIEW_ITEMS.md](REVIEW_ITEMS.md) | Unresolved choices | Resolve before dependent implementation; currently R1–R5 are open |
-| [CONTRACT.md](CONTRACT.md) | Backend/frontend boundary | Review and freeze exact shapes before integration; currently a review draft |
+| [REVIEW_ITEMS.md](REVIEW_ITEMS.md) | Review questions and resolutions | R1–R5 are resolved in D050–D060; consult before changing behavior |
+| [CONTRACT.md](CONTRACT.md) | Backend/frontend boundary | Approved and frozen for the documented boundary; use for integration |
 | [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Phases, dependencies, completion gates | Choose a bounded slice and its acceptance criteria |
 | [ACCEPTANCE.md](ACCEPTANCE.md) | Behavioral test specification | Select examples to drive TDD; this is not an executed test report |
 | [BACKEND.md](BACKEND.md) / [FRONTEND.md](FRONTEND.md) | Workstream briefs | Supply the one relevant to the selected slice |
@@ -203,6 +203,6 @@ Five hours remains a planning target; the user decides when to stop or cut scope
 
 ## Current recommended next step
 
-Use the **planning/contract review** starter to resolve R1–R5. The visual design
-packet can be used independently in the meantime. Do not start application
+R1–R5 are resolved and the documented boundary contract is frozen (D050–D062).
+The visual specification is approved (D063). Do not start application
 implementation in this chat or treat this usage guide as implementation approval.
