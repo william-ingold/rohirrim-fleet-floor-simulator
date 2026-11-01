@@ -490,3 +490,25 @@ including their trailing non-directive expected text, without rewriting inputs.
 All 21 CLI process tests passed with Node 26.13.0, including these five executions
 and the required npm root invocation. These additions passed on introduction;
 there was no product defect or claimed red run for the supplied scenarios.
+
+Phase 6 browser review: added two checks using real production assets, Nest,
+SQLite and the app's actual EventSource. A UI Step with a history-insert trigger
+returns 500 and retains snapshot/revision/t0/queued MOVE/history with no stream
+update; removing the trigger lets the same Step commit, broadcast the HTTP
+response, move east, consume the queue and spend one battery. A second case
+forces scheduler.error, disconnects one tab, resumes in another, and verifies
+the returning tab clears its obsolete warning. Both passed on introduction;
+the reducer's earlier unit regression supplies the observed red evidence.
+
+Added validated FLEET_TEST_API_PORT/FLEET_TEST_WEB_PORT overrides and a preview
+proxy target for isolated browser runs while existing services keep their ports.
+FLEET_TEST_SCREENSHOTS redirects captures to scratch instead of rewriting Phase
+5 evidence. Defaults remain 3000/5173 and the existing screenshot directory.
+Command used Node 26.13.0, ports 3101/5273, Chromium under
+/tmp/rohirrim-playwright, and captures under /tmp/rohirrim-phase6-screenshots.
+All 10 Chromium cases passed (36.2 seconds), including eight retained flows.
+Actually viewed the dense desktop and default 390px captures. Typecheck caught
+16 typing diagnostics in the new review test (instrumented Window and unknown
+SQLite row types); fixed those and reran with zero errors/warnings. These were
+AI-authored test typing mistakes, not product defects. No assistive-technology,
+Firefox/WebKit, physical-touch or performance certification is claimed.

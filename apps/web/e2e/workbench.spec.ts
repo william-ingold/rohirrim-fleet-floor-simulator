@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
-const screenshots = '../../docs/handoff/phase5/screenshots';
+const screenshots = process.env.FLEET_TEST_SCREENSHOTS ?? '../../docs/handoff/phase5/screenshots';
 const cell = (page: Page, x: number, y: number) => page.getByRole('gridcell', { name: new RegExp(`^x ${x}, y ${y},`) });
 async function create(page: Page, width = 10, height = 8) {
   await page.goto('/'); await page.getByLabel('Width', { exact: true }).fill(String(width)); await page.getByLabel('Height', { exact: true }).fill(String(height));
