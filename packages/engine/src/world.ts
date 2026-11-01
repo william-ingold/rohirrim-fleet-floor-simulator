@@ -44,7 +44,7 @@ export class World {
     if (width === this.#state.width && height === this.#state.height) return this;
     return this.replace({ width, height });
   }
-  placeRobot(position: Position, robotId?: string, facing: Facing = 'NORTH'): World {
+  placeRobot(position: Position, robotId?: string, facing?: Facing): World {
     this.edit();
     let id: string;
     if (robotId === undefined) {
@@ -56,7 +56,8 @@ export class World {
       throw new DomainError('Placement is blocked or out of bounds', 'INVALID_PLACEMENT');
     }
     const existing = this.#robots.find(r => r.snapshot.id === id);
-    const robot = existing ? existing.relocate(position, facing) : new Robot({ id, position, facing, battery: 100, queue: [] });
+    requireDomain(!existing || facing !== undefined, 'Re-placement requires facing');
+    const robot = existing ? existing.relocate(position, facing!) : new Robot({ id, position, facing: facing ?? 'NORTH', battery: 100, queue: [] });
     if (existing && JSON.stringify(existing.snapshot) === JSON.stringify(robot.snapshot)) return this;
     return this.replace({ robots: [...this.#state.robots.filter(r => r.id !== id), robot.snapshot] });
   }

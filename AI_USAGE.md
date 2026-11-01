@@ -38,3 +38,12 @@ planning, immutable consecutive-failure progress and arrival completion. All 35
 tests/typecheck/build passed. Refactored repeated GOTO completion construction.
 Battery cost/charging were already part of Robot tick effects, so the additional
 non-GOTO battery tests passed on introduction; no red claim is made for them.
+
+Final audit added restored-baseline validation/copy tests, four-direction movement,
+explicit snapshot comparisons in permutation tests, and 256 deterministic full-grid
+configurations checking occupancy/bounds/battery/one-head/input immutability.
+Found that re-placement incorrectly inherited the new-robot NORTH default despite
+the frozen contract requiring explicit facing. New test failed (1 failed/41 passed),
+then the aggregate guard fixed it (42 passed). Restricted CONTINUING progress to
+GOTO at the type boundary and narrowed public exports. This is an AI implementation
+mistake caught by its own review/tests, not a claimed user rejection.

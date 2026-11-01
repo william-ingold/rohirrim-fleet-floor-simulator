@@ -20,7 +20,8 @@ export type Movement = { readonly status: 'NOT_ATTEMPTED' | 'SUCCEEDED' } | {
   readonly status: 'BLOCKED'; readonly reason: BlockedReason; readonly blockerId?: string;
 };
 export type CommandProgress = { readonly status: 'NONE' } |
-  { readonly status: 'COMPLETED' | 'CONTINUING'; readonly type: CommandSnapshot['type'] } |
+  { readonly status: 'COMPLETED'; readonly type: CommandSnapshot['type'] } |
+  { readonly status: 'CONTINUING'; readonly type: 'GOTO' } |
   { readonly status: 'ABANDONED'; readonly type: 'GOTO'; readonly reason: 'UNREACHABLE' };
 export type RobotTickOutcome = {
   readonly robotId: string; readonly position: Position; readonly facing: Facing;

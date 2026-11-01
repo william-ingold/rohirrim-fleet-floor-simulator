@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { World, resolveMovement } from '../src/index.js';
-import type { Facing, Position, RobotSnapshot, WorldSnapshot } from '../src/index.js';
+import type { Facing, Position, RobotSnapshot } from '../src/index.js';
 
 const p = (x: number, y: number) => ({ x, y });
 const robot = (id: string, x: number, y: number, facing: Facing, queue: RobotSnapshot['queue'] = [{ type: 'MOVE' }], battery = 100): RobotSnapshot => ({ id, position: p(x, y), facing, queue, battery });
@@ -74,7 +74,9 @@ describe('simultaneous movement', () => {
       for (const plans of permutations(intents)) {
         expect(resolveMovement({ ...w.snapshot, robots: order }, plans)).toEqual(expected);
       }
-      expect(World.restore({ ...w.snapshot, robots: order }).step()).toEqual(w.step());
+      const permuted = World.restore({ ...w.snapshot, robots: order }).step();
+      expect(permuted.world.snapshot).toEqual(w.step().world.snapshot);
+      expect(permuted.outcomes).toEqual(w.step().outcomes);
     }
     expect(JSON.stringify(w.snapshot)).toBe(before);
     expect(robots[0]?.queue).toEqual([{ type: 'MOVE' }]);
@@ -89,6 +91,31 @@ describe('simultaneous movement', () => {
     expect(() => paused.automaticTick()).toThrow();
     const playing = paused.play();
     expect(playing.automaticTick().world.snapshot).toEqual({ ...playing.snapshot, tick: 1 });
+  });
+
+  it.each([
+    ['NORTH', p(1, 2)], ['EAST', p(2, 1)], ['SOUTH', p(1, 0)], ['WEST', p(0, 1)],
+  ] as const)('E01: a %s MOVE respects southwest origin', (facing, destination) => {
+    expect(world([robot('R1', 1, 1, facing)], 3, 3).step().world.snapshot.robots[0]?.position).toEqual(destination);
+  });
+
+  it('E07/B01: occupancy, battery and one-head invariants hold for 256 simultaneous configurations', () => {
+    const facings = ['NORTH', 'EAST', 'SOUTH', 'WEST'] as const;
+    const cells = [p(0, 0), p(0, 1), p(1, 1), p(1, 0)];
+    for (let configuration = 0; configuration < 256; configuration++) {
+      const robots = cells.map((cell, i) => robot(`R${i + 1}`, cell.x, cell.y, facings[(configuration >> (i * 2)) & 3]!, [{ type: 'MOVE' }, { type: 'LEFT' }], i === 0 ? 0 : 50));
+      const start = world(robots, 2, 2), before = JSON.stringify(start.snapshot);
+      const result = start.step();
+      expect(new Set(result.world.snapshot.robots.map(r => `${r.position.x},${r.position.y}`)).size).toBe(4);
+      for (const outcome of result.outcomes) {
+        const original = robots.find(r => r.id === outcome.robotId)!;
+        expect(outcome.battery).toBe(original.battery - (outcome.movement.status === 'SUCCEEDED' ? 1 : 0));
+        expect(outcome.position.x).toBeGreaterThanOrEqual(0); expect(outcome.position.x).toBeLessThan(2);
+        expect(outcome.position.y).toBeGreaterThanOrEqual(0); expect(outcome.position.y).toBeLessThan(2);
+      }
+      expect(result.world.snapshot.robots.every(r => r.queue.length === 1 && r.queue[0]?.type === 'LEFT')).toBe(true);
+      expect(JSON.stringify(start.snapshot)).toBe(before);
+    }
   });
 });
 

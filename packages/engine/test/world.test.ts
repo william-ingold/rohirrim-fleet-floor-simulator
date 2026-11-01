@@ -101,4 +101,22 @@ describe('B1 construction, edits and lifecycle', () => {
     expect(world.snapshot.robots[0]?.queue).toEqual([]);
     expect(world.enqueue('R1', [{ type: 'GOTO', target: p(0, 0) }]).snapshot.robots[0]?.queue).toHaveLength(1);
   });
+
+  it('E08: an explicit re-placement must supply facing, per the frozen action contract', () => {
+    const world = World.create(2, 2).placeRobot(p(0, 0), 'R1', 'WEST');
+    expect(() => world.placeRobot(p(1, 0), 'R1')).toThrow(DomainError);
+    expect(world.snapshot.robots[0]).toMatchObject({ position: p(0, 0), facing: 'WEST' });
+  });
+
+  it('L01: restored t0 is independently validated, defensively copied and never rewritten', () => {
+    const paused = World.create(2, 2).placeRobot(p(0, 0)).finishSetup();
+    const t0 = JSON.parse(JSON.stringify(paused.baseline));
+    const restored = World.restore(paused.snapshot, t0);
+    t0.robots[0].position.x = 1;
+    expect(restored.baseline).toEqual(paused.baseline);
+    expect(restored.step().world.baseline).toEqual(paused.baseline);
+    for (const baseline of [{ ...paused.baseline, tick: 1 }, { ...paused.baseline, lifecycle: 'SETTING_UP' }, { ...paused.baseline, width: 3 }]) {
+      expect(() => World.restore(paused.snapshot, baseline)).toThrow(DomainError);
+    }
+  });
 });
