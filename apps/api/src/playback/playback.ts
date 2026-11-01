@@ -17,7 +17,7 @@ export const systemClock: Clock = {
 };
 export type SchedulerError = { readonly worldId: string; readonly error: { readonly code: 'PERSISTENCE_UNAVAILABLE' | 'INTERNAL_ERROR'; readonly message: string } };
 const LEASE_MS = 15000;
-type Lease = { worldId: string; open: boolean; deadline: number; timer: unknown };
+type Lease = { worldId: string; open: boolean; deadline: number; timer: unknown; generation?: object };
 type Loop = { interval: number; timer?: unknown };
 
 /** Synchronous SQLite actions serialize HTTP and expiry callbacks between ticks. */
@@ -55,8 +55,11 @@ export class Playback {
     return { worldId, revision: world.revision, expiresInMs: LEASE_MS };
   }
   private armLease(id: string, lease: Lease): void {
+    const generation = {};
+    lease.generation = generation;
     lease.timer = this.clock.setTimeout(() => {
-      if (this.leases.get(id) !== lease || lease.deadline > this.clock.now()) return;
+      if (this.leases.get(id) !== lease || lease.generation !== generation) return;
+      if (lease.deadline > this.clock.now()) { this.armLease(id, lease); return; }
       this.leases.delete(id);
       if (!this.hasPresence(lease.worldId) && this.loops.has(lease.worldId)) this.autoPause(lease.worldId);
     }, Math.max(0, lease.deadline - this.clock.now()));

@@ -121,3 +121,13 @@ test('S10: real writer lock surfaces PERSISTENCE_UNAVAILABLE; committed End clea
   expect(f.worlds.get(f.id)).toEqual(before);
   f.playback.act(f.id, { type: 'END' }); expect(f.playback.error(f.id)).toBeUndefined();
 });
+
+test('S04/S05: a timer firing just before its monotonic deadline reschedules expiry independently of ticks', () => {
+  const f = fixture(), id = f.playback.register(f.id); play(f);
+  f.clock.advance(500); f.playback.renew(f.id, id);
+  f.clock.advance(14999);
+  const [handle, job] = [...f.clock.jobs].find(([, j]) => j.at === 15500);
+  f.clock.jobs.delete(handle); job.run(); // emulate an early host timer; it has already left the timer queue
+  f.clock.advance(1);
+  expect(f.worlds.get(f.id).state.lifecycle).toBe('PAUSED');
+});

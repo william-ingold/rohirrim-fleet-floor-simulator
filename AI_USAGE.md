@@ -300,3 +300,14 @@ scenarios/goto-charger.txt built engine/CLI and printed the six expected lines.
 No clean reinstall, dependency audit, performance, power-loss, browser or UI
 validation was performed in B5. Existing Jest experimental warnings remain.
 Git metadata was sandbox read-only; focused commits required escalation.
+
+Final timer audit after the SSE commit found a second expiry edge case: an
+application clock callback firing just before its deadline returned without
+rescheduling. Deterministic test ran red (1 failed/8 passed), demonstrating
+Playing persisted beyond the last lease deadline until the next tick. Lease
+callbacks now carry generation tokens and rearm when early; all 9 playback
+cases and strict typecheck passed. This is an additional focused correctness
+fix, not a changed presence policy. No further refactor was necessary.
+Final full regression after that timer fix: npm test rebuilt all workspaces and
+passed 108 Vitest + 69 Jest tests (177 total); npm run typecheck and git diff
+--check passed. This supersedes the earlier 175/176-test intermediate runs.
