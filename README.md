@@ -2,7 +2,8 @@
 
 Phase 1 / B1 implements the pure immutable engine for the core, module A (GOTO),
 and module B (battery/chargers). Phase 2 / B2 adds the isolated scenario CLI.
-The API, UI, database, scheduler and streams are not implemented yet.
+Phase 3 / B3 adds SQLite migrations and the durable application service.
+The HTTP API, UI, scheduler, presence and streams are not implemented yet.
 
 Use Node **26.13.0** (also pinned in `.nvmrc`) and its bundled npm:
 
@@ -15,8 +16,10 @@ npm run build
 
 `npm run test:engine` runs only engine tests. `npm run test:scenario` builds and
 runs CLI tests, including real child processes. `npm test` builds both workspaces
-before running all tests. The build emits the public `@rohirrim/engine` workspace
-export and the scenario executable.
+before running all tests: Vitest for engine/CLI, Jest for SQLite. The build emits
+the public `@rohirrim/engine` workspace export, scenario executable and persistence
+service. `npm run test:persistence` builds engine/persistence and runs Jest only.
+The scenario command builds only engine/CLI and opens no database.
 
 Run a scenario from the repository root without an API or database:
 
@@ -51,10 +54,11 @@ setup/paused/playing/ended guards and t0 capture. It has no runtime dependencies
 on frameworks, storage, timers or network. Turns and blocked moves are free;
 the approved battery example yields **98**, resolving the brief's conflicting 97.
 
-See [B2 results and next-slice handoff](docs/handoff/B2_RESULTS.md) for current
-red/green evidence, acceptance coverage and remaining work, and
+See [B3 results and setup](docs/handoff/B3_RESULTS.md) for current red/green
+evidence, SQLite setup, service types and remaining work,
+[B2 results](docs/handoff/B2_RESULTS.md) for CLI evidence, and
 [B1 results](docs/handoff/B1_RESULTS.md) for the public engine shapes.
 [HANDOFF.md](HANDOFF.md), [DECISIONS.md](DECISIONS.md) and
 [ARCHITECTURE.md](ARCHITECTURE.md) retain the planning record; their earlier
 planning-only status describes that session. This implementation is limited to
-the separately authorized B1/B2 slices. AI contributions are in [AI_USAGE.md](AI_USAGE.md).
+the separately authorized B1/B2/B3 slices. AI contributions are in [AI_USAGE.md](AI_USAGE.md).

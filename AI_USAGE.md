@@ -157,3 +157,20 @@ New playback still rejects pending the required presence/scheduler adapter; no
 unchecked playback bypass was added. All 25 SQLite tests, strict typecheck and
 git diff --check passed. Reviewed the small guard; no further refactor needed.
 This was caught by Codex's own review/test, not a claimed user correction.
+
+Final setup/documentation verification: sandboxed npm ci --offline --cache
+/tmp/rohirrim-npm-cache failed at better-sqlite3's native rebuild; rerunning
+outside the sandbox succeeded (435 packages), with deprecation/install-script
+notices. Offline output's zero audit findings is not treated as an online audit.
+The post-reinstall full suite passed 132 tests before the final Play audit;
+final npm test after that fix rebuilt all workspaces and passed 133 tests
+(108 Vitest + 25 Jest). Strict typecheck and git diff --check passed. The standalone
+root goto-charger scenario printed its six expected lines and built only the
+engine/CLI. A real Node ESM smoke executed the B3_RESULTS setup/action example
+against a temporary file DB and asserted revision 5, tick 1, default NORTH,
+battery 100, consumed queue and OUT_OF_BOUNDS outcome. Updated README/B3_RESULTS
+with migrations/pragmas, durable seam, actual red/green commands, audit limits,
+partial cross-layer acceptance and exact B4/B5 handoff. No user planning/design
+changes were included. No online npm ci, HTTP/browser, power-loss, performance
+or coverage claims are made. No skill, agent delegation or external messaging
+was used in B3.
