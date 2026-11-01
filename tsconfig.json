@@ -7,7 +7,15 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "verbatimModuleSyntax": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "experimentalDecorators": true
   },
-  "include": ["packages/engine/src/**/*.ts", "packages/engine/test/**/*.ts", "apps/scenario/src/**/*.ts", "apps/scenario/test/**/*.ts", "apps/api/src/**/*.ts", "vitest.config.ts"]
+  "include": [
+    "packages/engine/src/**/*.ts",
+    "packages/engine/test/**/*.ts",
+    "apps/scenario/src/**/*.ts",
+    "apps/scenario/test/**/*.ts",
+    "apps/api/src/**/*.ts",
+    "vitest.config.ts"
+  ]
 }

@@ -174,3 +174,25 @@ partial cross-layer acceptance and exact B4/B5 handoff. No user planning/design
 changes were included. No online npm ci, HTTP/browser, power-loss, performance
 or coverage claims are made. No skill, agent delegation or external messaging
 was used in B3.
+
+## Phase 3 / B4 — 2026-11-01, HTTP action increment
+
+The user corrected the initial B3/B1 ambiguity to phase 3 / B4. Read the provided
+master/backend prompts, B3 evidence, frozen contract, decisions, architecture,
+resolved review items and acceptance matrix. Selected A01–A03, HTTP portions of
+L01–L05 and D04 startup integration; engine E/P/B regressions remain unchanged.
+No agents, UI, scheduler, SSE or presence implementation.
+
+Queried official npm metadata outside the sandbox after EAI_AGAIN, pinning Nest
+common/core/platform-express 12.3.2, reflect-metadata 0.2.2, rxjs 7.8.2 and
+Supertest 7.3.1 in the single lockfile. Consulted official Nest exception-filter
+and Supertest documentation. Install reported 19 findings (3 low/16 moderate);
+no vulnerability remediation or zero-vulnerability claim. Node 26.13.0 used.
+
+All 42 engine tests passed. Added 17 HTTP/real-SQLite cases and executed them
+against a throwing adapter stub: 17 failed. Implemented Nest controllers,
+strict unknown-body validation, error filter, committed envelopes and startup
+factory owning its DB connection. The first compile caught a Nest 12 adapter
+interface mismatch; corrected to the required HttpServer reply capability.
+The sandbox blocked Supertest listen with EPERM; rerunning outside the sandbox
+passed all 17. Production engine and B3 persistence behavior unchanged.
