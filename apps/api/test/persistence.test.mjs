@@ -340,3 +340,15 @@ test('D02: another writer prevents an action; releasing the lock permits a later
   } finally { db.exec('ROLLBACK'); }
   expect(second.act(id, { type: 'FINISH_SETUP' })).toMatchObject({ revision: before.revision + 1, state: { lifecycle: 'PAUSED' } });
 });
+
+test('L03: repeated PLAY against saved Playing is a no-op; a new Play requires the later presence adapter', () => {
+  const { db, service } = fixture();
+  const id = simulateSavedPlaying(db, service);
+  const before = service.get(id), history = service.history(id);
+  expect(service.act(id, { type: 'PLAY', tickIntervalMs: 200 })).toEqual(before);
+  expect(service.history(id)).toEqual(history);
+  service.act(id, { type: 'PAUSE' });
+  const paused = service.get(id);
+  expect(() => service.act(id, { type: 'PLAY', tickIntervalMs: 1000 })).toThrow(expect.objectContaining({ code: 'INVALID_LIFECYCLE' }));
+  expect(service.get(id)).toEqual(paused);
+});

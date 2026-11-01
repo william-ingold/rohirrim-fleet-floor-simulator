@@ -149,3 +149,11 @@ Full npm test outside sandbox built all three workspaces, then passed the prior
 108 Vitest engine/CLI tests and 24 Jest SQLite tests (132 total). npm run typecheck
 passed. No HTTP/SSE validation is claimed. Tests use saved Playing fixtures to
 exercise recovery; PLAY/presence/scheduler remain explicitly deferred to B5.
+
+Final no-op audit found a B3 implementation error: deferred PLAY rejected even
+an already Playing world's required no-op. A focused new test ran red (1 failed,
+24 passed), then a narrow branch preserved the saved state/revision/history.
+New playback still rejects pending the required presence/scheduler adapter; no
+unchecked playback bypass was added. All 25 SQLite tests, strict typecheck and
+git diff --check passed. Reviewed the small guard; no further refactor needed.
+This was caught by Codex's own review/test, not a claimed user correction.

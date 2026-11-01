@@ -94,7 +94,9 @@ export class WorldService {
         case 'STEP': {
           const result = world.step(); next = result.world; effects = { outcomes: result.outcomes }; break;
         }
-        case 'PLAY': throw new DomainError('Play requires the B5 presence/scheduler adapter', 'INVALID_LIFECYCLE');
+        case 'PLAY':
+          if (world.snapshot.lifecycle === 'PLAYING') break;
+          throw new DomainError('Play requires the presence/scheduler adapter', 'INVALID_LIFECYCLE');
         default: throw new DomainError('Unknown world action');
       }
       return next === world ? this.response(row, world) : this.save(row, next, action, effects);
