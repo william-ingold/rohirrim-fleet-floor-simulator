@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -22,6 +22,22 @@ function expectSuccess(result: ReturnType<typeof run>, stdout: string): void {
 }
 
 describe('C01/C08: executable and mandatory root invocation', () => {
+  const supplied = {
+    'scenario-1.txt': 'R1 1,0,EAST\nR2 2,0,EAST\nR3 3,0,EAST\n',
+    'scenario-2.txt': 'R1 0,0,EAST\nR2 1,0,WEST\n',
+    'scenario-3.txt': 'R1 1,1,EAST\nR2 2,1,WEST\nR3 3,1,WEST\n',
+    'scenario-4.txt': 'R1 0,1,NORTH\nR2 1,1,EAST\nR3 1,0,SOUTH\nR4 0,0,WEST\n',
+    'scenario-5.txt': 'R1 2,2,SOUTH\nR2 1,1,EAST\nR1 2,2,SOUTH\nR2 3,1,EAST\n',
+  };
+  it('covers every supplied test-scenarios file with an independently reviewed expectation', () => {
+    expect(readdirSync(join(root, 'test-scenarios')).sort()).toEqual(Object.keys(supplied).sort());
+  });
+  it.each(Object.entries(supplied))('executes the original mixed input/output reference %s', (name, expected) => {
+    // Pass the original file unchanged, including its non-directive expected-output lines.
+    // These expectations were reviewed against the supplied text, not engine helpers.
+    expectSuccess(run([join(root, 'test-scenarios', name)]), expected);
+  });
+
   it.each(['chain', 'swap', 'contention', 'rotation', 'queues', 'battery', 'goto-charger'])('prints only explicit REPORT output for %s', name => {
     const result = run([`scenarios/${name}.txt`]);
     expectSuccess(result, readFileSync(join(root, `scenarios/${name}.stdout`), 'utf8'));

@@ -481,3 +481,12 @@ Four repeated/Ctrl/Alt/Meta Shift+Enter events incorrectly queued four GOTOs
 tests passed, including an ordinary Shift+Enter positive assertion. No engine,
 queue or shortcut policy changed. Strict typecheck subsequently passed with zero
 Svelte errors/warnings after correcting typing in the new browser review test.
+
+Phase 6 supplied CLI scenarios: inspected all five original files, including
+scenario-5's two REPORT sections. Added independently transcribed exact expected
+stdout for each and a directory-inventory assertion so a future extra supplied
+file cannot be silently omitted. Executed the original absolute file paths,
+including their trailing non-directive expected text, without rewriting inputs.
+All 21 CLI process tests passed with Node 26.13.0, including these five executions
+and the required npm root invocation. These additions passed on introduction;
+there was no product defect or claimed red run for the supplied scenarios.
