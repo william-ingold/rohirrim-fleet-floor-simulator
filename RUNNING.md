@@ -1,7 +1,69 @@
 # Run commands
 
-Run these commands in WSL Ubuntu. The Docker workflow needs Docker Desktop
-running with **Settings → Resources → WSL Integration → Ubuntu** enabled.
+Run these commands on a Unix machine. The native workflow below runs the complete
+app without Docker Desktop or containers. Docker is an optional alternative.
+
+## Without Docker Desktop: run directly
+
+Use Linux Node **26.13.0**, pinned in `.nvmrc`, and its bundled npm. If nvm is
+not installed, follow the one-time [nvm installation instructions](README.md#wsl-setup)
+first. Then install/select Node and install the project dependencies:
+
+```bash
+cd ~/rohirrim
+source "$HOME/.nvm/nvm.sh"
+nvm install
+nvm use
+node --version                   # v26.13.0
+node -p process.platform          # linux
+npm ci                           # first setup, or after the lockfile changes
+```
+
+Use two terminals. In **Terminal 1**, build and start the Node API:
+
+```bash
+cd ~/rohirrim
+source "$HOME/.nvm/nvm.sh"
+nvm use
+npm run start:api
+```
+
+The API listens at **http://127.0.0.1:3000/api**. Startup applies SQLite
+migrations and restores saved worlds automatically; no separate database server
+or SQLite installation is needed. The command builds the engine and API before
+starting them. Restart it after backend source changes.
+
+In **Terminal 2**, start the Svelte frontend with Vite hot reload:
+
+```bash
+cd ~/rohirrim
+source "$HOME/.nvm/nvm.sh"
+nvm use
+npm run dev
+```
+
+Open **http://localhost:5173**, or the URL printed by Vite if it selects another
+port. Vite proxies `/api`, including live updates, to the API on port 3000.
+Both terminals must remain running. Press Ctrl-C in each terminal to stop the
+app; saved worlds remain available on the next start.
+
+The native API stores saved worlds in `~/rohirrim/fleet-floor.sqlite` by default
+when started from the repository root. To use another database instead, replace
+the Terminal 1 startup command with:
+
+```bash
+DATABASE_PATH=/absolute/path/worlds.sqlite npm run start:api
+```
+
+The parent directory must already exist and be writable. Native SQLite data is
+separate from the Docker volume. Keep a world's `?world=...` URL to reopen it
+after a refresh or restart; a server restart restores Playing worlds as Paused.
+
+If a Docker copy is already running, stop it with `./run.sh stop` while Docker
+is available before starting the native API on the same port. This is only a
+port-conflict precaution; native startup does not require any Docker command.
+The development frontend's API proxy expects port 3000, so changing only the
+API's `PORT` will not update that proxy.
 
 ## Docker: start the complete app
 
@@ -45,43 +107,6 @@ docker compose ps
 docker compose logs --tail 100 -f
 docker compose down
 ```
-
-## Native WSL: develop with Vite hot reload
-
-Node 26.13.0 is installed persistently through nvm at
-`~/.nvm/versions/node/v26.13.0`. New Bash terminals load it automatically. For
-an existing terminal, load nvm and select the repository version:
-
-```bash
-cd ~/rohirrim
-source "$HOME/.nvm/nvm.sh"
-nvm use
-node --version                   # v26.13.0
-node -p process.platform          # linux
-npm ci                           # first setup, or after the lockfile changes
-```
-
-Stop the Docker app before starting the native API on the same port:
-
-```bash
-./run.sh stop
-```
-
-Then use two WSL terminals, each in `~/rohirrim` with `nvm use`:
-
-```bash
-# Terminal 1: builds and runs the API on http://127.0.0.1:3000
-npm run start:api
-
-# Terminal 2: starts Vite, normally at http://127.0.0.1:5173
-npm run dev
-```
-
-Open the URL printed by Vite. It proxies `/api` and live updates to port 3000.
-The native API stores saved worlds in `~/rohirrim/fleet-floor.sqlite` by default.
-Press Ctrl-C in each terminal to stop its process. To select another native
-database, use `DATABASE_PATH=/absolute/path/worlds.sqlite npm run start:api`;
-the parent directory must already exist and be writable.
 
 ## Verification
 

@@ -1,7 +1,7 @@
 # Fleet Floor Simulator
 
-Quick start in WSL: run `./run.sh`, then open **http://localhost:18080**.
-Docker Desktop must be running with Ubuntu WSL integration enabled.
+Quick start in WSL (or Unix machine): run `./run.sh`, then open **http://localhost:18080**.
+Docker Desktop must be installed and running, and with Ubuntu WSL integration enabled if using WSL.
 Use `./run.sh status`, `./run.sh logs`, and `./run.sh stop` to manage it.
 See [run commands](RUNNING.md) for Docker, native development, and verification.
 
@@ -28,13 +28,9 @@ npm run typecheck
 npm run build
 ```
 
-## WSL setup
+## Linux setup
 
-Install Linux Node inside Ubuntu rather than using Windows Node from `/mnt/c`.
-Windows npm invokes CMD, which cannot use a WSL UNC working directory and can
-fall back to `C:\Windows`, causing a missing `package.json` error.
-
-Install [nvm](https://github.com/nvm-sh/nvm#installing-and-updating) once in WSL:
+Install [nvm](https://github.com/nvm-sh/nvm#installing-and-updating):
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh -o /tmp/nvm-install.sh
@@ -55,8 +51,7 @@ commands above.
 
 ## Run everything in Docker
 
-Start Docker Desktop with the WSL 2 engine and enable Ubuntu in **Settings →
-Resources → WSL Integration**. See [Docker's WSL setup](https://docs.docker.com/desktop/features/wsl/).
+Start Docker Desktop.
 From the repository root:
 
 ```sh
