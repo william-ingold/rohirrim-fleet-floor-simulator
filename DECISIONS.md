@@ -1,6 +1,11 @@
 # Fleet Floor Simulator decisions
 
-Status: architecture planning; implementation has not started.
+Status: core and selected modules A/B implemented. Brief ambiguity audit updated
+2026-11-04; see the explicit resolution checklist at the end of this document.
+
+Earlier planning-only statements, including D048, describe their original
+session. Later implementation was separately authorized, as recorded in README.md
+and the implementation results; those statements do not describe current status.
 
 This document records scope decisions and interpretations of ambiguous
 requirements. Architectural proposals and decisions are maintained separately in
@@ -875,6 +880,94 @@ Original supplied scenario files remain untouched; real CLI process tests compar
 all five against independently transcribed expected reports. See Phase 6 results
 for actual red/green evidence and validation limits.
 
+## Brief contradiction and ambiguity resolution checklist
+
+Reviewed 2026-11-04 against [the supplied brief](docs/handoff/reference/BRIEF.md),
+the implementation, and executable tests. This checklist indexes existing
+decisions; it introduces no new simulation behavior or approval claims. The
+battery sample is a direct contradiction. The two defaults are context-specific,
+and the other entries resolve unspecified details or interactions between rules.
+
+### Floor, identity, queues, and scenario input
+
+| Brief reference and question | Explicit resolution | Decision record |
+| --- | --- | --- |
+| Core 1.1 vs. 1.5: is the default 10 × 8 or 5 × 5? | Interactive creation defaults to 10 × 8; each CLI invocation starts with 5 × 5. | Requirements from the brief; D026 |
+| Core 1.2: what is the next free ID, and are R01 and R1 distinct? | Allocate the smallest unused positive ID. Normalize case and leading zeros; require positive safe-integer IDs. Contention and reports compare numeric IDs. | D039 |
+| Core 1.5 PLACE: does relocating an existing robot reset it? | Preserve identity, battery, and queue; update position/facing and reset active GOTO no-path progress. Invalid placement changes nothing. | D007 |
+| Core 1.1/1.2: what does an ignored illegal placement mean across interfaces? | No world change. CLI ignores the invalid line and continues; HTTP returns an explicit error, and the UI retains committed state and explains the rejection. | D013, D046, D060 |
+| Core 1.5: does a partially valid QUEUE line partially append? | Validate and reject the entire line atomically; no valid prefix is appended. | D013 |
+| Core 1.5: which numbers, whitespace, and comments are accepted? | Decimal digit integers; dimensions 1..20; coordinates in bounds; positive safe-integer TICK counts. TICK 0 is invalid. Accept spaces/tabs around commas and whole-line comments; reject inline comments/trailing junk. | D038, D040 |
+| Core 1.5: what does a repeated FLOOR do? | Replace and clear an unfinished CLI draft. After the first valid TICK, ignore FLOOR. Interactive setup resize instead preserves contents or rejects the entire resize, including invalidated queued GOTO targets. | D027, D043 |
+| Core 1.5: how do REPORT, first TICK, and EOF interact with setup and queues? | REPORT only observes. First valid TICK captures t0 and steps. EOF finishes/ends without extra ticks, queue draining, or unsolicited reports. Invalid lines do not finish setup. | D006, D026 |
+| Module A: how does GOTO fit QUEUE syntax? | Accept `QUEUE R1 MOVE GOTO 3,4 LEFT`; GOTO plus its coordinate pair is one command. No top-level GOTO directive. | D015 |
+
+### Simultaneous movement, GOTO, and battery
+
+| Brief reference and question | Explicit resolution | Decision record |
+| --- | --- | --- |
+| Core 1.3: is contention rerun if its winner cannot leave/move? | Select the lowest eligible numeric ID once. Losers remain blocked even if the winner subsequently fails occupancy or swap checks. | D008 |
+| Module A vs. core 1.3: does every tick remove GOTO, and can its successor run immediately? | GOTO remains at the head until arrival or abandonment. Already-at-target completion consumes its tick; no successor executes on that tick. | D009 |
+| Module A: are occupied/obstacle targets invalid at enqueue time? | Reject out-of-bounds targets; accept in-bounds targets even if currently unreachable. Other robots' starting cells remain pathfinding walls even when they will move this tick. | D016; module A's explicit starting-occupancy rule |
+| Module A: does a contention-blocked path count toward three no-path ticks? | Only a failed path search increments the counter. A found path resets it even when movement is blocked. Third consecutive no-path tick drops GOTO and records UNREACHABLE. | D009 |
+| Module A: what facing remains after blocked movement or no path? | A found path's free facing change persists after blocked movement. With no path, facing stays unchanged. | D011, D041 |
+| Module B: the 3 × 1 example prints 97, but its third MOVE hits a wall. | Follow the written successful-moves-only cost rule: battery is **98**. Deliberately differ from the printed 97; preserve this exception in documentation and regression tests. | D010 |
+| Module B: can charging enable a move during the same tick, and do idle robots charge? | Movement uses starting battery. Deduct successful movement cost, then add 10 on the ending charger cell, capped at 100. Idle, turning, and blocked robots charge too; feature edits never charge immediately. | D010, D042 |
+| Module B vs. core 1.3: can a zero-battery robot win contention? | Exclude its movement before contention. Its starting cell still blocks incoming robots. Ordinary MOVE is consumed with NO_BATTERY. | D017 |
+| Core 1.3/module B: which reason wins when multiple rules block a move? | One primary reason: battery first, then bounds/obstacles, contention, swaps, and occupancy dependencies. | D018 |
+| Modules A/B: does zero battery suspend GOTO or make it unreachable? | Continue planning: at-target completes; no-path increments its counter; a found path resets progress and changes facing before NO_BATTERY blocks movement. Unfinished GOTO stays queued. | D019 |
+| Module B: can a charger coexist with an obstacle? | Features are independent and may overlap. Obstacle still blocks entry; removing either preserves the other. | D042 |
+
+### Lifecycle, persistence, and scope
+
+| Brief reference and question | Explicit resolution | Decision record |
+| --- | --- | --- |
+| Core 1.1–1.4: when are edits legal, and do empty queues end playback? | Setup/Paused allow edits; Playing requires Pause before edits; Ended is read-only. Finish Setup captures immutable t0. Empty queues do not end a run because idle charging may still change it. | D005, D006, D025 |
+| Core 1.4: what is retained, and are rejected/no-op actions history? | Persist full state, including battery and GOTO progress. Atomically commit snapshot and one revision-ordered action/history record, with every robot's tick outcome. Rejections and true no-ops add no revision/history; idle ticks do. | D012, D020, D021, D033 |
+| Core 1.4: what happens after a failed save or server restart? | Roll back failed changes without consuming queues; stop failed scheduling and surface an error. Restart durably pauses Playing worlds and records recovery; explicit Play is required. | D022–D024, D058, D062 |
+| Core 1.3/module D: who owns timers, and what happens when tabs disconnect? | One API process owns one loop per world. Browser refresh does not start another loop. Last-client lease expiry persists Pause; leases last 15 seconds from their last renewal, allowing brief reconnects within the remaining grace period. | D030, D035, D036, D053, D055 |
+| Core 1.3: what playback interval is allowed and retained? | Per-tab next-Play default is 1000 ms; accept integer 100..5000 ms. Server holds the active interval outside saved simulation state; repeated PLAY leaves it unchanged. | D051, D052, D055, D061 |
+| Depth modules: which optional requirements remain applicable? | A/B are selected and implemented. C is omitted; live synchronization exists, but complete module D is not claimed. C's historical-boundary question is deferred rather than silently answered. | D001; README selected-module scope |
+
+### Implementation and verification evidence
+
+The checklist was checked against the shared engine's World, Robot, command,
+movement, pathfinding, and snapshot code; the scenario parser/runner/reporter;
+SQLite application transactions and recovery; server playback; and the Svelte
+workbench/session/history implementation. The API and CLI import the same engine.
+
+- [Engine world tests](packages/engine/test/world.test.ts): dimensions, IDs,
+  atomic edits, feature overlap, resize, lifecycle, and immutable t0/queues.
+- [Movement tests](packages/engine/test/movement.test.ts): numeric contention,
+  no loser reconsideration, swaps, following/block propagation, rotations,
+  iteration independence, blocked-command consumption, and origin/facing.
+- [GOTO/battery tests](packages/engine/test/goto-battery.test.ts): path tie order,
+  starting occupancy, completion/no-path progress, relocation, zero battery,
+  charging order, and the explicit 98 battery sample regression.
+- [Scenario tests](apps/scenario/test/runner.test.ts) and
+  [real CLI process tests](apps/scenario/test/process.test.ts): grammar,
+  whole-line rejection, defaults, FLOOR/EOF, exact output for all five original
+  supplied scenario files, runner errors, and the mandatory root invocation.
+- [Persistence tests](apps/api/test/persistence.test.mjs),
+  [HTTP tests](apps/api/test/http.test.mjs), and
+  [playback tests](apps/api/test/playback.test.mjs): full-state restoration,
+  atomic rollback/history, rejection responses, restart recovery, one scheduler,
+  lease expiry, and failure/recovery behavior.
+- [Workbench tests](apps/web/test/workbench.test.ts) and
+  [session tests](apps/web/test/session.test.ts): UI command mapping, committed
+  state ownership, lifecycle restrictions, and synchronization/recovery.
+
+Executed during the 2026-11-04 review: `npm test` rebuilt all workspaces and
+passed 216 tests (116 engine/CLI, 72 API, 28 frontend); `npm run typecheck`
+passed with zero Svelte errors/warnings; `git diff --check` passed. Browser tests
+were not rerun in this review; prior browser evidence and its limits remain in
+[Phase 6 results](docs/handoff/PHASE6_RESULTS.md).
+
+No unresolved brief contradiction or ambiguity affecting the required core or
+selected A/B scope was found in this review. This is a scoped review conclusion,
+not a guarantee against every possible defect or undocumented future question.
+
 ## Specification ambiguities awaiting resolution
 
 - If module C is selected: historical boundaries around edits between ticks.
+  Deferred because timeline/fork is omitted; it does not block current A/B scope.

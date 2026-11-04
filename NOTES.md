@@ -29,6 +29,13 @@ I broke down to a minimal of three other documents:
 
 These also include various hand-off documents between chats that were used above.
 
+These documents are stored in the [docs](./docs/) directory.
+
 --- 10/31 ---
 
 ## Implementation
+Mainly driving via the prompts built in the previous step. I occasionally had to push back and correct, where the LLM agent tried to strive for scalability, resilience, availability, etc. - none of which are in scope for this project.
+
+Design and UI/UX was done with Claude Code. I've found it better at design tasks, though I drove it to be more unique rather than the typical UI spit out by Claude. I used Codex for most other implementation; using a phased backend and frontend approach, using TDD at its core.
+
+While explicitly desired to be pointed out, I rarely ran into large issues with what the agent output or suggested. Most were minor decisions that I opted against. And because I protected writing, I didn't particularly catch large coding errors after they occured. Though, being honest, my fullstack experience is mainly Elixir + Phoenix, with some basic Typescript and Vue/Svelte experience. Though I believe I did thorough testing: unit, integration, and smoke testing.
